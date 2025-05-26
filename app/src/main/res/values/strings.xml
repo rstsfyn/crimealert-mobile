@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">CrimeAlert</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="title_profile">Profile</string>
+    <string name="title_news">News</string>
+    <string name="title_activity_police_main">PoliceMainActivity</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <!-- Text tambahan -->
+    <string name="hint_email">Enter your email</string>
+    <string name="error_email">Email not Valid!</string>
+    <string name="hint_password">Enter your password</string>
+    <string name="error_password">Password must have at least 8 characters</string>
+    <string name="title_activity_detail_cases">DetailCasesActivity</string>
+</resources>

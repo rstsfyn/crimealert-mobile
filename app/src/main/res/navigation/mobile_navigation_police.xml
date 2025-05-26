@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation2"
+    app:startDestination="@+id/navigation_home_police">
+
+    <fragment
+        android:id="@+id/navigation_home_police"
+        android:name="com.restusofyan.crimealert_mobile.ui.police.homepolice.HomePoliceFragment"
+        android:label="@string/title_home"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/navigation_notifications_police"
+        android:name="com.restusofyan.crimealert_mobile.ui.police.notifications.NotificationsFragment"
+        android:label="@string/title_notifications"
+        tools:layout="@layout/fragment_notifications_police" />
+
+    <fragment
+        android:id="@+id/navigation_create_report_police"
+        android:name="com.restusofyan.crimealert_mobile.ui.police.createreportpolice.CreateReportPoliceFragment"
+        android:label="Create Report"/>
+
+    <fragment
+        android:id="@+id/navigation_cases_handled_history"
+        android:name="com.restusofyan.crimealert_mobile.ui.police.caseshandled.CasesHandledHistoryFragment"
+        android:label="Create Report"/>
+
+</navigation>
