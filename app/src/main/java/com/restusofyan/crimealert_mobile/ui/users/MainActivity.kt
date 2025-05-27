@@ -12,7 +12,9 @@ import androidx.navigation.ui.setupWithNavController
 import com.restusofyan.crimealert_mobile.R
 import com.restusofyan.crimealert_mobile.databinding.ActivityMainBinding
 import com.restusofyan.crimealert_mobile.ui.auth.LoginActivity
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding

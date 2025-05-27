@@ -61,7 +61,6 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Panggil login lewat ViewModel
             authViewModel.login(email, password)
         }
     }
@@ -87,14 +86,15 @@ class LoginActivity : AppCompatActivity() {
     private fun handleLoginSuccess(loginResponse: LoginResponse) {
         val loginResult = loginResponse.loginResult
         if (loginResult != null) {
-            // Simpan token dan role ke SharedPreferences
             val sharedPref = getSharedPreferences("user_session", MODE_PRIVATE)
             with(sharedPref.edit()) {
                 putString("token", loginResult.token)
                 putString("role", loginResult.role)
                 putString("name", loginResult.name)
                 putString("email", loginResult.email)
+                putString("avatar", loginResult.avatar)
                 apply()
+
             }
 
             Toast.makeText(this, "Selamat datang, ${loginResult.name}", Toast.LENGTH_SHORT).show()

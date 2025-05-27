@@ -5,41 +5,60 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.tasks.OnSuccessListener
 import com.restusofyan.crimealert_mobile.R
 import com.restusofyan.crimealert_mobile.data.model.CasesModel
 import com.restusofyan.crimealert_mobile.databinding.FragmentHomeBinding
 import com.restusofyan.crimealert_mobile.ui.adapter.NewsAdapter
 import com.restusofyan.crimealert_mobile.ui.customview.CustomDialogVoiceDetectionFragment
 import com.restusofyan.crimealert_mobile.ui.users.detailcases.DetailCasesActivity
+import com.restusofyan.crimealert_mobile.ui.users.news.NewsViewModel
 import com.restusofyan.crimealert_mobile.utils.AudioClassificationHelper
-import org.tensorflow.lite.support.label.Category
 import com.restusofyan.crimealert_mobile.utils.VoiceDetectionService
+import dagger.hilt.android.AndroidEntryPoint
+import org.tensorflow.lite.support.label.Category
 
+@AndroidEntryPoint
 class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
+    private val viewModel: HomeViewModel by viewModels()
 
     private lateinit var newsAdapter: NewsAdapter
     private var audioHelper: AudioClassificationHelper? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
-    private val LOCATION_PERMISSION_REQUEST_CODE = 100
+    private val permissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val grantedAudio = permissions[Manifest.permission.RECORD_AUDIO] ?: false
+        val grantedLocation = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+
+        if (grantedAudio && grantedLocation) {
+            showVoiceDetectionDialog()
+        } else {
+            Toast.makeText(
+                requireContext(),
+                "Permission mikrofon dan lokasi diperlukan untuk deteksi suara",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -52,32 +71,74 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val token = ambilTokenSession()
+        if (token != null) {
+            viewModel.fetchReports(token)
+        } else {
+            // Tangani kondisi token null, misal tampilkan pesan atau redirect ke login
+            Log.e("NewsFragment", "Token user tidak ditemukan")
+        }
         setupRecyclerView()
+        setupObservers()
         setupButton()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
+        displayUserInfo()
+    }
+
+    private fun displayUserInfo() {
+        val sharedPref = requireActivity().getSharedPreferences("user_session", Context.MODE_PRIVATE)
+        val userName = sharedPref.getString("name", "User")
+        var userAvatar = sharedPref.getString("avatar", null)
+
+        userAvatar = userAvatar?.replace("localhost", "10.0.2.2")
+
+        binding.tvName.text = userName ?: "User"
+
+        Glide.with(this)
+            .load(userAvatar)
+            .placeholder(R.drawable.profilephoto)
+            .error(R.drawable.profilephoto)
+            .into(binding.ivAvatar)
     }
 
     private fun setupRecyclerView() {
-        binding.rvTrendingcases.layoutManager = LinearLayoutManager(requireContext())
-        val newsList = createDummyData()
-        Log.d("HomeFragment", "Jumlah data: ${newsList.size}")
-
-        newsAdapter = NewsAdapter(newsList) { selectedNews ->
+        newsAdapter = NewsAdapter(emptyList()) { selectedNews ->
             val intent = Intent(requireContext(), DetailCasesActivity::class.java).apply {
-                putExtra("news_id", selectedNews.id)
+                putExtra("news_id", selectedNews.idReport)
                 putExtra("news_title", selectedNews.title)
                 putExtra("news_description", selectedNews.description)
-                putExtra("news_image_url", selectedNews.imageUrl)
-                putExtra("news_timestamp", selectedNews.timestamp)
-                putExtra("news_date", selectedNews.date)
-                putExtra("news_status", selectedNews.status)
-                putExtra("news_latitude", selectedNews.latitude)
-                putExtra("news_longitude", selectedNews.longitude)
+                putExtra("news_image_url", selectedNews.picture)
+                putExtra("news_timestamp", selectedNews.createdAt?.takeLast(5))
+                putExtra("news_date", selectedNews.createdAt?.substringBefore("T"))
+                putExtra("news_status", selectedNews.statusKasus)
+                putExtra("news_latitude", selectedNews.map?.latitude)
+                putExtra("news_longitude", selectedNews.map?.longitude)
             }
             startActivity(intent)
         }
 
-        binding.rvTrendingcases.adapter = newsAdapter
+        binding.rvTrendingcases.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = newsAdapter
+        }
+    }
+
+    private fun setupObservers() {
+        viewModel.reports.observe(viewLifecycleOwner) { data ->
+            newsAdapter.updateData(data.take(5))
+        }
+
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            // binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        }
+
+        viewModel.error.observe(viewLifecycleOwner) { errorMsg ->
+            errorMsg?.let {
+                Log.e("NewsFragment", it)
+                // Tampilkan Snackbar / Toast jika perlu
+            }
+        }
     }
 
     private fun setupButton() {
@@ -92,19 +153,48 @@ class HomeFragment : Fragment() {
         }
 
         binding.voiceDetection.setOnClickListener {
-            val dialog = CustomDialogVoiceDetectionFragment()
-
-            dialog.onYesClick = {
-                setupAudioHelper()
-                audioHelper?.startAudioClassification()
-                Toast.makeText(requireContext(), "Voice detection started", Toast.LENGTH_SHORT).show()
-
-                // Start Voice Detection Service (Notifikasi Berjalan)
-                startVoiceDetectionService()
+            if (hasPermissions()) {
+                showVoiceDetectionDialog()
+            } else {
+                // Request both RECORD_AUDIO and ACCESS_FINE_LOCATION permissions
+                permissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.RECORD_AUDIO,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    )
+                )
             }
-
-            dialog.show(parentFragmentManager, CustomDialogVoiceDetectionFragment::class.java.simpleName)
         }
+
+        binding.tvTrendingcasesSeeall.setOnClickListener {
+            Log.d("HomeFragment", "See all clicked!")
+            findNavController().navigate(R.id.navigation_news)
+        }
+    }
+
+    private fun hasPermissions(): Boolean {
+        val recordAudioGranted = ActivityCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+
+        val locationGranted = ActivityCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        return recordAudioGranted && locationGranted
+    }
+
+    private fun showVoiceDetectionDialog() {
+        val dialog = CustomDialogVoiceDetectionFragment()
+        dialog.onYesClick = {
+            setupAudioHelper()
+            audioHelper?.startAudioClassification()
+            Toast.makeText(requireContext(), "Voice detection started", Toast.LENGTH_SHORT).show()
+            startVoiceDetectionService()
+        }
+        dialog.show(parentFragmentManager, CustomDialogVoiceDetectionFragment::class.java.simpleName)
     }
 
     private fun setupAudioHelper() {
@@ -133,7 +223,6 @@ class HomeFragment : Fragment() {
 
     private fun startVoiceDetectionService() {
         val serviceIntent = Intent(requireContext(), VoiceDetectionService::class.java)
-
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             requireContext().startForegroundService(serviceIntent)
         } else {
@@ -141,66 +230,50 @@ class HomeFragment : Fragment() {
         }
     }
 
-
-    private fun handleScreamDetected() {
-        audioHelper?.stopAudioClassification()
-        stopVoiceDetectionService()
-
-        // Meminta izin lokasi jika belum diberikan
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                requireActivity(),
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                LOCATION_PERMISSION_REQUEST_CODE
-            )
-            return
-        }
-
-        fusedLocationClient.lastLocation.addOnSuccessListener(requireActivity(), OnSuccessListener { location: Location? ->
-            if (location != null) {
-                val latitude = location.latitude
-                val longitude = location.longitude
-                Log.d("ScreamDetected", "Location captured: Lat: $latitude, Lng: $longitude")
-
-                // Simulasikan penyimpanan ke server / Firebase / database lokal
-                saveScreamLocation(latitude, longitude)
-
-                // Feedback ke pengguna
-                Toast.makeText(requireContext(), "Screaming detected!\nLocation shared!", Toast.LENGTH_LONG).show()
-            } else {
-                Log.e("ScreamDetected", "Failed to get location")
-                Toast.makeText(requireContext(), "Failed to get location", Toast.LENGTH_SHORT).show()
-            }
-        })
-    }
-
-    private fun saveScreamLocation(latitude: Double, longitude: Double) {
-        // Di sini kamu bisa menyimpan ke Firebase, Room, atau API
-        // Untuk sekarang kita log sebagai simulasi penyimpanan
-
-        Log.d("ScreamDetected", "Saving scream location to database...")
-        Log.d("ScreamDetected", "Saved location: Latitude = $latitude, Longitude = $longitude")
-
-        // Contoh: Kirim ke Firebase atau API di sini
-    }
-
     private fun stopVoiceDetectionService() {
         val serviceIntent = Intent(requireContext(), VoiceDetectionService::class.java)
         requireContext().stopService(serviceIntent)
     }
 
-    private fun createDummyData(): List<CasesModel> {
-        return listOf(
-            CasesModel(1, "Keributan di Jalan Magelang", "Ada segerombolan remaja membawa sajam...", "https://pidjar.com/wp-content/uploads/2020/01/klithih-ilustrasi.jpg", "23:59", "Kamis, 13 Maret 2025", "Sudah Ditangani", -7.747033, 110.353738),
-            CasesModel(2, "Kecelakaan di Jalan Sudirman", "Kecelakaan beruntun melibatkan 3 kendaraan...", "https://pidjar.com/wp-content/uploads/2020/01/klithih-ilustrasi.jpg", "08:30", "Jumat, 14 Maret 2025", "Sudah Ditangani", -7.782916, 110.367744),
-            CasesModel(3, "Festival Kuliner di Malioboro", "Festival kuliner tahunan kembali digelar...", "https://pidjar.com/wp-content/uploads/2020/01/klithih-ilustrasi.jpg", "12:45", "Sabtu, 15 Maret 2025", "Sudah Ditangani", -7.793083, 110.363633),
-            CasesModel(4, "Banjir di Kawasan Bantul", "Hujan deras sepanjang malam menyebabkan banjir...", "https://pidjar.com/wp-content/uploads/2020/01/klithih-ilustrasi.jpg", "06:15", "Minggu, 16 Maret 2025", "Sudah Ditangani", -7.888063, 110.325110),
-            CasesModel(5, "Kebakaran di Pasar Beringharjo", "Api menghanguskan sekitar 15 kios...", "https://pidjar.com/wp-content/uploads/2020/01/klithih-ilustrasi.jpg", "22:10", "Senin, 17 Maret 2025", "Sudah Ditangani", -7.800601, 110.367152)
-        )
+    private fun handleScreamDetected() {
+        audioHelper?.stopAudioClassification()
+        stopVoiceDetectionService()
+
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            Toast.makeText(requireContext(), "Permission lokasi tidak diberikan", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+            if (location != null) {
+                val latitude = location.latitude
+                val longitude = location.longitude
+                Log.d("ScreamDetected", "Location captured: Lat: $latitude, Lng: $longitude")
+
+                saveScreamLocation(latitude, longitude)
+
+                Toast.makeText(requireContext(), "Screaming detected!\nLocation shared!", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(requireContext(), "Gagal mendapatkan lokasi", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun saveScreamLocation(latitude: Double, longitude: Double) {
+        // Simulasi penyimpanan ke server / Firebase / database lokal
+        Log.d("ScreamDetected", "Saving scream location to database...")
+        Log.d("ScreamDetected", "Saved location: Latitude = $latitude, Longitude = $longitude")
+
+        // TODO: Implementasi penyimpanan ke Firebase atau API di sini
+    }
+
+    private fun ambilTokenSession(): String? {
+        val sharedPref = requireContext().getSharedPreferences("user_session", Context.MODE_PRIVATE)
+        return sharedPref.getString("token", null)
     }
 
     override fun onDestroyView() {

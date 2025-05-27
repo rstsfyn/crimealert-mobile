@@ -26,5 +26,8 @@ data class LoginResult(
 	val email: String? = null,
 
 	@field:SerializedName("token")
-	val token: String? = null
+	val token: String? = null,
+
+	@field:SerializedName("avatar")
+	val avatar: String? = null
 )

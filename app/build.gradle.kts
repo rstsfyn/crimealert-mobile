@@ -20,6 +20,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+//        buildConfigField ("String", "BASE_URL", "\"http://192.168.1.10:3000/api/\"")
         buildConfigField ("String", "BASE_URL", "\"http://10.0.2.2:3000/api/\"")
 
         ndk {
@@ -74,8 +75,8 @@ dependencies {
     implementation (libs.play.services.maps.v1820)
     implementation (libs.play.services.location)
     implementation (libs.material.v1100)
-    implementation(libs.tensorflow.lite.task.audio)
-    implementation(libs.tensorflow.lite.support)
+    implementation (libs.tensorflow.lite.task.audio)
+    implementation (libs.tensorflow.lite.support)
     implementation(libs.tensorflow.lite)
     implementation (libs.tensorflow.lite.metadata)
     implementation (libs.androidx.lifecycle.runtime.ktx)
@@ -89,7 +90,6 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.gson)
-    implementation(libs.glide)
     implementation(libs.lottie)
     implementation(libs.androidx.viewpager2)
 
