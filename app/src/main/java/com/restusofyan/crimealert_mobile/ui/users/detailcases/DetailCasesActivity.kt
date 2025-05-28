@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
@@ -70,8 +71,13 @@ class DetailCasesActivity : AppCompatActivity(), OnMapReadyCallback {
         binding.tvTitle.text = intent.getStringExtra("news_title")
         binding.tvDescription.text = intent.getStringExtra("news_description")
         binding.tvDate.text = intent.getStringExtra("news_date")
+        binding.tvNewsTimestamp.text = intent.getStringExtra("news_timestamp")?.let { raw ->
+            val tIndex = raw.indexOf('T')
+            if (tIndex != -1 && raw.length >= tIndex + 6) raw.substring(tIndex + 1, tIndex + 6) else "--:--"
+        } ?: "--:--"
         binding.tvStatus.text = intent.getStringExtra("news_status")
-        val imageUrl = intent.getStringExtra("news_image_url")
+        var imageUrl = intent.getStringExtra("news_image_url")
+        imageUrl = imageUrl?.replace("localhost", "10.0.2.2")
         if (!imageUrl.isNullOrEmpty()) {
             Glide.with(this)
                 .load(imageUrl)

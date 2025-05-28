@@ -22,7 +22,7 @@
             android:id="@+id/iv_avatar"
             android:layout_width="55dp"
             android:layout_height="55dp"
-            android:src="@drawable/profilephoto"
+            android:src="@drawable/photopolice"
             android:layout_marginEnd="16dp"
             android:contentDescription="profile"
             android:layout_gravity="center_horizontal"/>
@@ -34,7 +34,7 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tv_name"
+                android:id="@+id/desc_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Hi"
@@ -43,14 +43,20 @@
                 android:textColor="@android:color/white" />
 
             <TextView
-                android:id="@+id/tv_email"
+                android:id="@+id/tv_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Restu Sofyan Maa'arif"
+                android:text="Ladushing"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="@android:color/white" />
         </LinearLayout>
+        <ImageView
+            android:id="@+id/tv_edit_profile"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:src="@drawable/ic_notificationhome"
+            android:contentDescription="@string/title_notifications" />
     </LinearLayout>
 
     <TextView
@@ -94,13 +100,13 @@
                 <ImageView
                     android:layout_width="56dp"
                     android:layout_height="56dp"
-                    android:src="@drawable/ic_createreport" />
+                    android:src="@drawable/ic_cases_masuk" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingTop="8dp"
-                    android:text=" Create   Report "
+                    android:text="Cases Incoming"
                     android:textAlignment="center"
                     android:textColor="@android:color/black"
                     android:textSize="16sp" />

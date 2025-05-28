@@ -8,14 +8,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.restusofyan.crimealert_mobile.databinding.FragmentNotificationsPoliceBinding
 import com.restusofyan.crimealert_mobile.data.model.CasesModel
+import com.restusofyan.crimealert_mobile.databinding.FragmentCaseslistPoliceBinding
 import com.restusofyan.crimealert_mobile.ui.adapter.CasesAdapter
 import com.restusofyan.crimealert_mobile.ui.police.detailcasespolice.DetailCasesPoliceActivity
 
 class NotificationsFragment : Fragment() {
 
-    private var _binding: FragmentNotificationsPoliceBinding? = null
+    private var _binding: FragmentCaseslistPoliceBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var casesAdapter: CasesAdapter
@@ -25,7 +25,7 @@ class NotificationsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentNotificationsPoliceBinding.inflate(inflater, container, false)
+        _binding = FragmentCaseslistPoliceBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -37,22 +37,22 @@ class NotificationsFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        binding.rvReportpolice.layoutManager = LinearLayoutManager(requireContext())
-        val casesList = createDummyData()
-        Log.d("NewsFragment", "Jumlah data: ${casesList.size}")
+//        binding.rvReportpolice.layoutManager = LinearLayoutManager(requireContext())
+//        val casesList = createDummyData()
+//        Log.d("NewsFragment", "Jumlah data: ${casesList.size}")
 
-        casesAdapter = CasesAdapter(casesList) { selectedNews ->
-            val intent = Intent(requireContext(), DetailCasesPoliceActivity::class.java).apply {
-                putExtra("news_id", selectedNews.id)
-                putExtra("news_title", selectedNews.title)
-                putExtra("news_description", selectedNews.description)
-                putExtra("news_image_url", selectedNews.imageUrl)
-                putExtra("news_timestamp", selectedNews.timestamp)
-                putExtra("news_date", selectedNews.date)
-                putExtra("news_status", selectedNews.status)
-            }
-            startActivity(intent)
-        }
+//        casesAdapter = CasesAdapter(casesList) { selectedNews ->
+//            val intent = Intent(requireContext(), DetailCasesPoliceActivity::class.java).apply {
+//                putExtra("news_id", selectedNews.id)
+//                putExtra("news_title", selectedNews.title)
+//                putExtra("news_description", selectedNews.description)
+//                putExtra("news_image_url", selectedNews.imageUrl)
+//                putExtra("news_timestamp", selectedNews.timestamp)
+//                putExtra("news_date", selectedNews.date)
+//                putExtra("news_status", selectedNews.status)
+//            }
+//            startActivity(intent)
+//        }
 
         binding.rvReportpolice.adapter = casesAdapter
     }

@@ -9,10 +9,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.restusofyan.crimealert_mobile.R
 import com.restusofyan.crimealert_mobile.data.model.CasesModel
+import com.restusofyan.crimealert_mobile.data.response.casesreports.ListReportsItem
 
 class CasesAdapter(
-    private val casesList: List<CasesModel>,
-    private val onItemClick: (CasesModel) -> Unit
+    private var casesList: List<ListReportsItem>,
+    private val onItemClick: (ListReportsItem) -> Unit
 ) : RecyclerView.Adapter<CasesAdapter.NewsViewHolder>() {
 
     class NewsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -33,24 +34,35 @@ class CasesAdapter(
     override fun onBindViewHolder(holder: NewsViewHolder, position: Int) {
         val currentItem = casesList[position]
 
-        holder.newsTitle.text = currentItem.title
-        holder.newsDescription.text = currentItem.description
-        holder.newsTimestamp.text = currentItem.timestamp
-        holder.newsDate.text = currentItem.date
-        holder.newsStatus.text = currentItem.status
+        holder.newsTitle.text = currentItem.title ?: "No Title"
+        holder.newsDescription.text = currentItem.description ?: "No Description"
+        val time = currentItem.createdAt?.let {
+            val tIndex = it.indexOf('T')
+            if (tIndex != -1 && it.length >= tIndex + 6) {
+                it.substring(tIndex + 1, tIndex + 6)
+            } else {
+                "--:--"
+            }
+        } ?: "--:--"
+        holder.newsTimestamp.text = time
+        holder.newsDate.text = currentItem.createdAt?.substringBefore("T") ?: "----/--/--"
+        holder.newsStatus.text = currentItem.statusKasus ?: "Status Kasus"
 
-        // Load image using Glide
         Glide.with(holder.itemView.context)
-            .load(currentItem.imageUrl)
+            .load(currentItem.picture?.replace("localhost", "10.0.2.2"))
             .centerCrop()
-            .placeholder(R.drawable.profilephoto) // Placeholder image
+            .placeholder(R.drawable.profilephoto)
             .into(holder.newsImage)
 
-        // Item click listener
         holder.itemView.setOnClickListener {
             onItemClick(currentItem)
         }
     }
 
     override fun getItemCount(): Int = casesList.size
+
+    fun updateData(newData: List<ListReportsItem>) {
+        casesList = newData
+        notifyDataSetChanged()
+    }
 }

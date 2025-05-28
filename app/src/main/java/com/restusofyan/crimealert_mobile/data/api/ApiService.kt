@@ -1,17 +1,28 @@
 package com.restusofyan.crimealert_mobile.data.api
 
 
+import com.restusofyan.crimealert_mobile.data.response.casesreports.CasesHandledReportResponse
 import com.restusofyan.crimealert_mobile.data.response.casesreports.CasesReportResponse
+import com.restusofyan.crimealert_mobile.data.response.casesreports.UpdateStatusReportResponse
+import com.restusofyan.crimealert_mobile.data.response.casesreports.UpdateStatusRequest
+import com.restusofyan.crimealert_mobile.data.response.createreport.AddNewReportResponse
 import com.restusofyan.crimealert_mobile.data.response.login.LoginRequest
 import com.restusofyan.crimealert_mobile.data.response.login.LoginResponse
 import com.restusofyan.crimealert_mobile.data.response.profile.MyProfileResponse
 import com.restusofyan.crimealert_mobile.data.response.register.RegisterRequest
 import com.restusofyan.crimealert_mobile.data.response.register.RegisterResponse
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Part
+import retrofit2.http.Path
 
 interface ApiService {
 
@@ -34,5 +45,33 @@ interface ApiService {
     suspend fun getAllReports(
         @Header("Authorization") token: String,
     ) : Response<CasesReportResponse>
+
+    @Multipart
+    @POST("reports/")
+    suspend fun createReport(
+        @Header("Authorization") token: String,
+        @Part photo: MultipartBody.Part,
+        @Part("title") title: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part("latitude") latitude: RequestBody?,
+        @Part("longitude") longitude: RequestBody?
+    ): Response<AddNewReportResponse>
+
+    @GET("reports/me")
+    suspend fun getReportsMe(
+        @Header("Authorization") token: String,
+    ) : Response<CasesReportResponse>
+
+    @GET("reports/handled")
+    suspend fun getHandledReportHistory(
+        @Header("Authorization") token: String,
+    ) : Response<CasesHandledReportResponse>
+
+    @PUT("reports/{id}/status")
+    suspend fun updateStatus(
+        @Header("Authorization") token: String,
+        @Path("id_report") reportId: Int,
+        @Body statusBody: UpdateStatusRequest
+    ): Response<UpdateStatusReportResponse>
 
 }

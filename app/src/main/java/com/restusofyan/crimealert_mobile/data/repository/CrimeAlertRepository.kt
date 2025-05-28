@@ -1,12 +1,18 @@
 package com.restusofyan.crimealert_mobile.data.repository
 
 import com.restusofyan.crimealert_mobile.data.api.ApiService
+import com.restusofyan.crimealert_mobile.data.response.casesreports.CasesHandledReportResponse
 import com.restusofyan.crimealert_mobile.data.response.casesreports.CasesReportResponse
+import com.restusofyan.crimealert_mobile.data.response.casesreports.UpdateStatusReportResponse
+import com.restusofyan.crimealert_mobile.data.response.casesreports.UpdateStatusRequest
+import com.restusofyan.crimealert_mobile.data.response.createreport.AddNewReportResponse
 import com.restusofyan.crimealert_mobile.data.response.login.LoginRequest
 import com.restusofyan.crimealert_mobile.data.response.login.LoginResponse
 import com.restusofyan.crimealert_mobile.data.response.profile.MyProfileResponse
 import com.restusofyan.crimealert_mobile.data.response.register.RegisterRequest
 import com.restusofyan.crimealert_mobile.data.response.register.RegisterResponse
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -27,6 +33,29 @@ class CrimeAlertRepository @Inject constructor(
 
     suspend fun getAllReports(token: String): Response<CasesReportResponse> {
         return apiService.getAllReports("Bearer $token")
+    }
+
+    suspend fun getMyReports(token: String): Response<CasesReportResponse> {
+        return apiService.getReportsMe("Bearer $token")
+    }
+
+    suspend fun createNewReport(
+        token: String,
+        picture: MultipartBody.Part,
+        title: RequestBody,
+        description: RequestBody,
+        latitude: RequestBody?,
+        longitude: RequestBody?
+    ): Response<AddNewReportResponse> {
+        return apiService.createReport(token, picture, title, description, latitude, longitude)
+    }
+
+    suspend fun getHandledHistory(token: String): Response<CasesHandledReportResponse> {
+        return apiService.getHandledReportHistory("Bearer $token")
+    }
+
+    suspend fun updateReportStatus(token: String, reportId: Int, status: String): Response<UpdateStatusReportResponse> {
+        return apiService.updateStatus("Bearer $token", reportId, UpdateStatusRequest(status))
     }
 
 }

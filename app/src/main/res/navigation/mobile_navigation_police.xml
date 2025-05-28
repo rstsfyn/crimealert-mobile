@@ -12,19 +12,19 @@
         tools:layout="@layout/fragment_home" />
 
     <fragment
-        android:id="@+id/navigation_notifications_police"
-        android:name="com.restusofyan.crimealert_mobile.ui.police.notifications.NotificationsFragment"
-        android:label="@string/title_notifications"
-        tools:layout="@layout/fragment_notifications_police" />
+        android:id="@+id/navigation_caseslist_police"
+        android:name="com.restusofyan.crimealert_mobile.ui.police.caseslistpolice.CasesListPoliceFragment"
+        android:label="Cases List"
+        tools:layout="@layout/fragment_caseslist_police" />
 
     <fragment
         android:id="@+id/navigation_create_report_police"
-        android:name="com.restusofyan.crimealert_mobile.ui.police.createreportpolice.CreateReportPoliceFragment"
+        android:name="com.restusofyan.crimealert_mobile.ui.police.caseslistpolice.CasesListPoliceFragment"
         android:label="Create Report"/>
 
     <fragment
         android:id="@+id/navigation_cases_handled_history"
         android:name="com.restusofyan.crimealert_mobile.ui.police.caseshandled.CasesHandledHistoryFragment"
-        android:label="Create Report"/>
+        android:label="Cases Handled"/>
 
 </navigation>

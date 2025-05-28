@@ -8,29 +8,33 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.restusofyan.crimealert_mobile.R
+import com.restusofyan.crimealert_mobile.data.model.CasesModel
+import com.restusofyan.crimealert_mobile.data.response.casesreports.CasesHandledReportResponse
+import com.restusofyan.crimealert_mobile.data.response.casesreports.ListHandledReportsItem
 import com.restusofyan.crimealert_mobile.data.response.casesreports.ListReportsItem
 
-class NewsAdapter(
-    private var newsList: List<ListReportsItem>,
-    private val onItemClick: (ListReportsItem) -> Unit
-) : RecyclerView.Adapter<NewsAdapter.NewsViewHolder>() {
+class CasesHandledAdapter(
+    private var casesList: List<ListHandledReportsItem>,
+    private val onItemClick: (ListHandledReportsItem) -> Unit
+) : RecyclerView.Adapter<CasesHandledAdapter.NewsViewHolder>() {
 
-    inner class NewsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    class NewsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val newsImage: ImageView = itemView.findViewById(R.id.iv_news_image)
         val newsTitle: TextView = itemView.findViewById(R.id.tv_news_title)
         val newsDescription: TextView = itemView.findViewById(R.id.tv_news_description)
         val newsTimestamp: TextView = itemView.findViewById(R.id.tv_news_timestamp)
         val newsDate: TextView = itemView.findViewById(R.id.tv_news_date)
+        val newsStatus: TextView = itemView.findViewById(R.id.tv_cases_status)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NewsViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_news, parent, false)
+            .inflate(R.layout.item_cases, parent, false)
         return NewsViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: NewsViewHolder, position: Int) {
-        val currentItem = newsList[position]
+        val currentItem = casesList[position]
 
         holder.newsTitle.text = currentItem.title ?: "No Title"
         holder.newsDescription.text = currentItem.description ?: "No Description"
@@ -44,6 +48,7 @@ class NewsAdapter(
         } ?: "--:--"
         holder.newsTimestamp.text = time
         holder.newsDate.text = currentItem.createdAt?.substringBefore("T") ?: "----/--/--"
+        holder.newsStatus.text = currentItem.statusKasus ?: "Status Kasus"
 
         Glide.with(holder.itemView.context)
             .load(currentItem.picture?.replace("localhost", "10.0.2.2"))
@@ -56,10 +61,10 @@ class NewsAdapter(
         }
     }
 
-    override fun getItemCount(): Int = newsList.size
+    override fun getItemCount(): Int = casesList.size
 
-    fun updateData(newData: List<ListReportsItem>) {
-        newsList = newData
+    fun updateData(newData: List<ListHandledReportsItem>) {
+        casesList = newData
         notifyDataSetChanged()
     }
 }

@@ -42,7 +42,6 @@ class NewsFragment : Fragment() {
         if (token != null) {
             viewModel.fetchReports(token)
         } else {
-            // Tangani kondisi token null, misal tampilkan pesan atau redirect ke login
             Log.e("NewsFragment", "Token user tidak ditemukan")
         }
     }
@@ -54,7 +53,7 @@ class NewsFragment : Fragment() {
                 putExtra("news_title", selectedNews.title)
                 putExtra("news_description", selectedNews.description)
                 putExtra("news_image_url", selectedNews.picture)
-                putExtra("news_timestamp", selectedNews.createdAt?.takeLast(5))
+                putExtra("news_timestamp", selectedNews.createdAt)
                 putExtra("news_date", selectedNews.createdAt?.substringBefore("T"))
                 putExtra("news_status", selectedNews.statusKasus)
                 putExtra("news_latitude", selectedNews.map?.latitude)
@@ -81,7 +80,6 @@ class NewsFragment : Fragment() {
         viewModel.error.observe(viewLifecycleOwner) { errorMsg ->
             errorMsg?.let {
                 Log.e("NewsFragment", it)
-                // Tampilkan Snackbar / Toast jika perlu
             }
         }
     }

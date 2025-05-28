@@ -12,7 +12,9 @@ import com.restusofyan.crimealert_mobile.R
 import com.restusofyan.crimealert_mobile.databinding.ActivityPoliceMainBinding
 import com.restusofyan.crimealert_mobile.ui.auth.LoginActivity
 import android.util.Log
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class PoliceMainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityPoliceMainBinding
@@ -37,17 +39,29 @@ class PoliceMainActivity : AppCompatActivity() {
         binding = ActivityPoliceMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val navView: BottomNavigationView = binding.navView
-
         val navController = findNavController(R.id.nav_host_fragment_activity_police_main)
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
+
         val appBarConfiguration = AppBarConfiguration(
-            setOf(
-                R.id.navigation_home_police, R.id.navigation_notifications_police
-            )
+            setOf(R.id.navigation_home_police, R.id.navigation_caseslist_police)
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
+
+        // Custom BottomNavigationView logic
+        binding.navView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_home_police, R.id.navigation_caseslist_police -> {
+                    navController.navigate(item.itemId)
+                    true
+                }
+                R.id.logout -> {
+                    sharedPref.edit().clear().apply()
+                    startActivity(Intent(this, LoginActivity::class.java))
+                    finish()
+                    true
+                }
+                else -> false
+            }
+        }
     }
+
 }

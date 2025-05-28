@@ -1,5 +1,6 @@
 package com.restusofyan.crimealert_mobile.ui.police.homepolice
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -7,8 +8,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
 import com.restusofyan.crimealert_mobile.R
 import com.restusofyan.crimealert_mobile.data.model.CasesModel
 import com.restusofyan.crimealert_mobile.databinding.FragmentHomePoliceBinding
@@ -16,13 +19,17 @@ import com.restusofyan.crimealert_mobile.ui.adapter.CasesAdapter
 import com.restusofyan.crimealert_mobile.ui.adapter.NewsAdapter
 import com.restusofyan.crimealert_mobile.ui.police.detailcasespolice.DetailCasesPoliceActivity
 import com.restusofyan.crimealert_mobile.ui.users.detailcases.DetailCasesActivity
+import com.restusofyan.crimealert_mobile.ui.users.home.HomeViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class HomePoliceFragment : Fragment() {
 
     private var _binding: FragmentHomePoliceBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var casesAdapter: CasesAdapter
+    private val viewModel: HomePoliceViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -38,33 +45,84 @@ class HomePoliceFragment : Fragment() {
 
         setupRecyclerView()
         setupButton()
+        setupObservers()
+        displayUserInfo()
+        ambilDataCases()
+    }
+
+    private fun displayUserInfo() {
+        val sharedPref = requireActivity().getSharedPreferences("user_session", Context.MODE_PRIVATE)
+        val userName = sharedPref.getString("name", "Ladhusing")
+        var userAvatar = sharedPref.getString("avatar", null)
+
+        userAvatar = userAvatar?.replace("localhost", "10.0.2.2")
+
+        binding.tvName.text = userName ?: "User"
+
+        Glide.with(this)
+            .load(userAvatar)
+            .placeholder(R.drawable.profilephoto)
+            .error(R.drawable.profilephoto)
+            .into(binding.ivAvatar)
     }
 
     private fun setupRecyclerView() {
-        binding.rvReportpolice.layoutManager = LinearLayoutManager(requireContext())
-        val newsList = createDummyData()
-        Log.d("HomeFragment", "Jumlah data: ${newsList.size}")
-
-        casesAdapter = CasesAdapter(newsList) { selectedNews ->
-            val intent = Intent(requireContext(), DetailCasesPoliceActivity::class.java).apply {
-                putExtra("news_id", selectedNews.id)
+        casesAdapter = CasesAdapter(emptyList()) { selectedNews ->
+            val intent = Intent(requireContext(), DetailCasesActivity::class.java).apply {
+                putExtra("news_id", selectedNews.idReport)
                 putExtra("news_title", selectedNews.title)
                 putExtra("news_description", selectedNews.description)
-                putExtra("news_image_url", selectedNews.imageUrl)
-                putExtra("news_timestamp", selectedNews.timestamp)
-                putExtra("news_date", selectedNews.date)
-                putExtra("news_status", selectedNews.status)
+                putExtra("news_image_url", selectedNews.picture)
+                putExtra("news_timestamp", selectedNews.createdAt)
+                putExtra("news_date", selectedNews.createdAt?.substringBefore("T"))
+                putExtra("news_status", selectedNews.statusKasus)
+                putExtra("news_latitude", selectedNews.map?.latitude)
+                putExtra("news_longitude", selectedNews.map?.longitude)
             }
             startActivity(intent)
         }
-        binding.rvReportpolice.adapter = casesAdapter
+
+        binding.rvReportpolice.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = casesAdapter
+        }
     }
 
-    private fun setupButton() {
-        binding.createreportpolice.setOnClickListener {
-            Log.d("HomeFragment", "Create Report clicked!")
-            findNavController().navigate(R.id.navigation_create_report_police)
+    private fun setupObservers() {
+        viewModel.reports.observe(viewLifecycleOwner) { data ->
+            data?.let {
+                val listReports = it.filterNotNull().take(5)
+                casesAdapter.updateData(listReports)
+            }
         }
+
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            // binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        }
+
+        viewModel.error.observe(viewLifecycleOwner) { errorMsg ->
+            errorMsg?.let {
+                Log.e("NewsFragment", it)
+                // Tampilkan Snackbar / Toast jika perlu
+            }
+        }
+    }
+
+    private fun ambilDataCases() {
+        val token = ambilTokenSession()
+        if (token != null) {
+            viewModel.fetchReports(token)
+        } else {
+            Log.e("NewsFragment", "Token user tidak ditemukan")
+        }
+    }
+
+
+    private fun setupButton() {
+//        binding.createreportpolice.setOnClickListener {
+//            Log.d("HomeFragment", "Create Report clicked!")
+//            findNavController().navigate(R.id.navigation_create_report_police)
+//        }
 
         binding.casesHandledHistory.setOnClickListener {
             Log.d("HomeFragment", "Create Report clicked!")
@@ -72,64 +130,9 @@ class HomePoliceFragment : Fragment() {
         }
     }
 
-    private fun createDummyData(): List<CasesModel> {
-        return listOf(
-            CasesModel(
-                id = 1,
-                title = "Keributan di Jalan Magelang",
-                description = "Ada segerombolan remaja membawa sajam di area Jalan Magelang, dan selain itu juga meresahkan warga.",
-                imageUrl = "https://pidjar.com/wp-content/uploads/2020/01/klithih-ilustrasi.jpg",
-                timestamp = "23:59",
-                date = "Kamis, 13 Maret 2025",
-                status = "Sudah Ditangani",
-                latitude = -7.747033,
-                longitude = 110.353738
-            ),
-            CasesModel(
-                id = 2,
-                title = "Kecelakaan di Jalan Sudirman",
-                description = "Kecelakaan beruntun melibatkan 3 kendaraan terjadi di Jalan Sudirman pagi ini, menyebabkan kemacetan parah.",
-                imageUrl = "https://pidjar.com/wp-content/uploads/2020/01/klithih-ilustrasi.jpg",
-                timestamp = "08:30",
-                date = "Jumat, 14 Maret 2025",
-                status = "Sudah Ditangani",
-                latitude = -7.782916,
-                longitude = 110.367744
-            ),
-            CasesModel(
-                id = 3,
-                title = "Festival Kuliner di Malioboro",
-                description = "Festival kuliner tahunan kembali digelar di sepanjang Jalan Malioboro dengan lebih dari 50 stan makanan tradisional.",
-                imageUrl = "https://pidjar.com/wp-content/uploads/2020/01/klithih-ilustrasi.jpg",
-                timestamp = "12:45",
-                date = "Sabtu, 15 Maret 2025",
-                status = "Sudah Ditangani",
-                latitude = -7.793083,
-                longitude = 110.363633
-            ),
-            CasesModel(
-                id = 4,
-                title = "Banjir di Kawasan Bantul",
-                description = "Hujan deras sepanjang malam menyebabkan banjir di beberapa area di Kabupaten Bantul, ratusan rumah terendam.",
-                imageUrl = "https://pidjar.com/wp-content/uploads/2020/01/klithih-ilustrasi.jpg",
-                timestamp = "06:15",
-                date = "Minggu, 16 Maret 2025",
-                status = "Sudah Ditangani",
-                latitude = -7.888063,
-                longitude = 110.325110
-            ),
-            CasesModel(
-                id = 5,
-                title = "Kebakaran di Pasar Beringharjo",
-                description = "Api menghanguskan sekitar 15 kios di Pasar Beringharjo semalam, kerugian ditaksir mencapai ratusan juta rupiah.",
-                imageUrl = "https://pidjar.com/wp-content/uploads/2020/01/klithih-ilustrasi.jpg",
-                timestamp = "22:10",
-                date = "Senin, 17 Maret 2025",
-                status = "Sudah Ditangani",
-                latitude = -7.800601,
-                longitude = 110.367152
-            )
-        )
+    private fun ambilTokenSession(): String? {
+        val sharedPref = requireContext().getSharedPreferences("user_session", Context.MODE_PRIVATE)
+        return sharedPref.getString("token", null)
     }
 
     override fun onDestroyView() {

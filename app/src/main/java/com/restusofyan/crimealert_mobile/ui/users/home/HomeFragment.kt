@@ -72,6 +72,16 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+
+        setupRecyclerView()
+        setupObservers()
+        setupButton()
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
+        displayUserInfo()
+        ambilDataNews()
+    }
+
+    private fun ambilDataNews() {
         val token = ambilTokenSession()
         if (token != null) {
             viewModel.fetchReports(token)
@@ -79,11 +89,6 @@ class HomeFragment : Fragment() {
             // Tangani kondisi token null, misal tampilkan pesan atau redirect ke login
             Log.e("NewsFragment", "Token user tidak ditemukan")
         }
-        setupRecyclerView()
-        setupObservers()
-        setupButton()
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
-        displayUserInfo()
     }
 
     private fun displayUserInfo() {
@@ -109,7 +114,7 @@ class HomeFragment : Fragment() {
                 putExtra("news_title", selectedNews.title)
                 putExtra("news_description", selectedNews.description)
                 putExtra("news_image_url", selectedNews.picture)
-                putExtra("news_timestamp", selectedNews.createdAt?.takeLast(5))
+                putExtra("news_timestamp", selectedNews.createdAt)
                 putExtra("news_date", selectedNews.createdAt?.substringBefore("T"))
                 putExtra("news_status", selectedNews.statusKasus)
                 putExtra("news_latitude", selectedNews.map?.latitude)
@@ -126,7 +131,10 @@ class HomeFragment : Fragment() {
 
     private fun setupObservers() {
         viewModel.reports.observe(viewLifecycleOwner) { data ->
-            newsAdapter.updateData(data.take(5))
+            data?.let {
+                val listReports = it.filterNotNull().take(5)
+                newsAdapter.updateData(listReports)
+            }
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->

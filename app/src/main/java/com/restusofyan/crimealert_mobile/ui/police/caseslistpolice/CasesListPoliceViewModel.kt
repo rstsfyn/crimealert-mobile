@@ -1,23 +1,23 @@
-package com.restusofyan.crimealert_mobile.ui.police.caseshandled
+package com.restusofyan.crimealert_mobile.ui.police.caseslistpolice
 
+import android.graphics.Bitmap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.restusofyan.crimealert_mobile.data.repository.CrimeAlertRepository
-import com.restusofyan.crimealert_mobile.data.response.casesreports.ListHandledReportsItem
 import com.restusofyan.crimealert_mobile.data.response.casesreports.ListReportsItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class CasesHandledHistoryViewModel@Inject constructor(
+class CasesListPoliceViewModel @Inject constructor(
     private val repository: CrimeAlertRepository
 ) : ViewModel() {
 
-    private val _reports = MutableLiveData<List<ListHandledReportsItem>>()
-    val reports: LiveData<List<ListHandledReportsItem>> = _reports
+    private val _reports = MutableLiveData<List<ListReportsItem>>()
+    val reports: LiveData<List<ListReportsItem>> = _reports
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
@@ -29,9 +29,9 @@ class CasesHandledHistoryViewModel@Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = repository.getHandledHistory(token)
+                val response = repository.getAllReports(token)
                 if (response.isSuccessful) {
-                    _reports.value = response.body()?.listHandledReports?.filterNotNull()
+                    _reports.value = response.body()?.listReports?.filterNotNull()
                 } else {
                     _error.value = "Gagal memuat berita: ${response.message()}"
                 }
