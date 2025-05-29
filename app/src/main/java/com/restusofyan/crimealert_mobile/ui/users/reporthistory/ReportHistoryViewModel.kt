@@ -28,7 +28,7 @@ class ReportHistoryViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = repository.getAllReports(token)
+                val response = repository.getMyReports(token)
                 if (response.isSuccessful) {
                     _reports.value = response.body()?.listReports?.filterNotNull()
                 } else {

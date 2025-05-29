@@ -2,13 +2,17 @@ package com.restusofyan.crimealert_mobile.ui.users.createreport
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
+import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -22,179 +26,260 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import com.google.android.gms.location.LocationServices
 import com.restusofyan.crimealert_mobile.R
+import com.restusofyan.crimealert_mobile.databinding.FragmentCreateReportBinding
+import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
+@AndroidEntryPoint
 class CreateReportFragment : Fragment() {
 
-    private lateinit var imagePreview: ImageView
-    private lateinit var cameraLauncher: ActivityResultLauncher<Intent>
+    private lateinit var binding: FragmentCreateReportBinding
+    private lateinit var sharedPref: SharedPreferences
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
+    private val createReportViewModel: CreateReportViewModel by viewModels()
+    private lateinit var locationPermissionLauncher: ActivityResultLauncher<String>
 
-    private val viewModel: CreateReportViewModel by viewModels()
 
+    private var selectedImageUri: Uri? = null
     private var currentPhotoPath: String? = null
-    private var photoURI: Uri? = null
+    private var currentLocation: Pair<Double, Double>? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val view = inflater.inflate(R.layout.fragment_create_report, container, false)
+        binding = FragmentCreateReportBinding.inflate(inflater, container, false)
 
         hideBottomNavigation()
-        initializeViews(view)
-        setupClickListeners(view)
-        setupCameraLauncher()
-        setupPermissionLauncher()
+        initializeSharedPreferences()
+        setupButtonListeners()
+        setupObservers()
+        setupLocationPermissionLauncher()
 
-        // Jika ViewModel sudah simpan foto path, tampilkan foto
-        currentPhotoPath?.let {
-            setPic(it)
+        // Restore state if needed
+        restoreStateIfNeeded(savedInstanceState)
+
+        // Get current location
+        getCurrentLocation()
+
+        return binding.root
+    }
+
+    private fun initializeSharedPreferences() {
+        sharedPref = requireContext().getSharedPreferences("user_session", Context.MODE_PRIVATE)
+    }
+
+    private fun restoreStateIfNeeded(savedInstanceState: Bundle?) {
+        savedInstanceState?.let { bundle ->
+            selectedImageUri = bundle.getString("imageUri")?.let { Uri.parse(it) }
+            currentPhotoPath = bundle.getString("photoPath")
+
+            selectedImageUri?.let { uri ->
+                binding.imagePreview.setImageURI(uri)
+            }
         }
-
-        return view
     }
 
     private fun hideBottomNavigation() {
         (activity as? androidx.appcompat.app.AppCompatActivity)?.findViewById<View>(R.id.nav_view)?.visibility = View.GONE
     }
 
-    private fun initializeViews(view: View) {
-        imagePreview = view.findViewById(R.id.imagePreview)
-    }
-
-    private fun setupClickListeners(view: View) {
-        view.findViewById<ImageButton>(R.id.backButton).setOnClickListener {
+    private fun setupButtonListeners() {
+        binding.backButton.setOnClickListener {
             requireActivity().onBackPressed()
         }
 
-        view.findViewById<View>(R.id.take_photo).setOnClickListener {
-            checkCameraPermissionAndOpenCamera()
+        binding.takePhoto.setOnClickListener {
+            takePhoto()
         }
 
-        view.findViewById<Button>(R.id.upload).setOnClickListener {
+        binding.upload.setOnClickListener {
             uploadReport()
         }
     }
 
-    private fun setupCameraLauncher() {
-        cameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                // Foto sudah disimpan ke file, tampilkan
-                currentPhotoPath?.let {
-                    setPic(it)
+    private fun setupObservers() {
+        createReportViewModel.uploadResult.observe(viewLifecycleOwner) { result ->
+            when (result) {
+                is CreateReportViewModel.UploadResult.Loading -> {
+                    binding.upload.isEnabled = false
+                    binding.upload.text = "Uploading..."
                 }
-            } else {
-                Toast.makeText(requireContext(), "Failed to take photo", Toast.LENGTH_SHORT).show()
+                is CreateReportViewModel.UploadResult.Success -> {
+                    binding.upload.isEnabled = true
+                    binding.upload.text = "Upload Report"
+                    Toast.makeText(requireContext(), result.message, Toast.LENGTH_SHORT).show()
+                    requireActivity().onBackPressed()
+                }
+                is CreateReportViewModel.UploadResult.Error -> {
+                    binding.upload.isEnabled = true
+                    binding.upload.text = "Upload Report"
+                    Toast.makeText(requireContext(), result.message, Toast.LENGTH_SHORT).show()
+                }
             }
         }
-    }
-
-    private fun setupPermissionLauncher() {
-        requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                openCamera()
-            } else {
-                Toast.makeText(requireContext(), "Camera permission is required", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun checkCameraPermissionAndOpenCamera() {
-        when {
-            ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED -> {
-                openCamera()
-            }
-
-            shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) -> {
-                Toast.makeText(requireContext(), "Camera permission is needed to take photos", Toast.LENGTH_SHORT).show()
-                requestPermissionLauncher.launch(Manifest.permission.CAMERA)
-            }
-
-            else -> {
-                requestPermissionLauncher.launch(Manifest.permission.CAMERA)
-            }
-        }
-    }
-
-    private fun openCamera() {
-        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        // Buat file foto dulu
-        val photoFile: File? = try {
-            createImageFile()
-        } catch (ex: IOException) {
-            Toast.makeText(requireContext(), "Error creating image file", Toast.LENGTH_SHORT).show()
-            null
-        }
-
-        photoFile?.also {
-            photoURI = FileProvider.getUriForFile(
-                requireContext(),
-                "${requireContext().packageName}.fileprovider",
-                it
-            )
-            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-            if (cameraIntent.resolveActivity(requireActivity().packageManager) != null) {
-                cameraLauncher.launch(cameraIntent)
-            } else {
-                Toast.makeText(requireContext(), "Camera not available", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    // Membuat file gambar baru dengan nama unik
-    @Throws(IOException::class)
-    private fun createImageFile(): File {
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val storageDir: File? = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        return File.createTempFile(
-            "JPEG_${timeStamp}_", /* prefix */
-            ".jpg", /* suffix */
-            storageDir /* directory */
-        ).apply {
-            currentPhotoPath = absolutePath
-        }
-    }
-
-    private fun setPic(photoPath: String) {
-        // Atur ukuran gambar supaya pas di ImageView untuk menghemat memory
-        val targetW: Int = imagePreview.width
-        val targetH: Int = imagePreview.height
-
-        val bmOptions = BitmapFactory.Options().apply {
-            inJustDecodeBounds = true
-        }
-        BitmapFactory.decodeFile(photoPath, bmOptions)
-
-        val photoW: Int = bmOptions.outWidth
-        val photoH: Int = bmOptions.outHeight
-
-        // Hitung scale down factor
-        val scaleFactor: Int = if (targetW > 0 && targetH > 0) {
-            Math.min(photoW / targetW, photoH / targetH)
-        } else {
-            1
-        }
-
-        val bmOptions2 = BitmapFactory.Options().apply {
-            inJustDecodeBounds = false
-            inSampleSize = scaleFactor
-        }
-
-        val bitmap = BitmapFactory.decodeFile(photoPath, bmOptions2)
-        imagePreview.setImageBitmap(bitmap)
-
-        // Simpan bitmap ke ViewModel juga kalau perlu (optional)
-        // viewModel.capturedImage = bitmap
     }
 
     private fun uploadReport() {
-        Toast.makeText(requireContext(), "Upload clicked", Toast.LENGTH_SHORT).show()
-        // TODO: Implement upload logic here, termasuk upload file gambar di currentPhotoPath
+        val title = binding.titleInput.text.toString().trim()
+        val description = binding.descriptionInput.text.toString().trim()
+        val token = sharedPref.getString("token", null)
+
+        if (token == null) {
+            Toast.makeText(requireContext(), "Please log in again", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (title.isEmpty()) {
+            Toast.makeText(requireContext(), "Please enter a title", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (description.isEmpty()) {
+            Toast.makeText(requireContext(), "Please enter a description", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (currentPhotoPath == null) {
+            Toast.makeText(requireContext(), "Please take a photo", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val compressedFile = createReportViewModel.compressImage(currentPhotoPath!!)
+        if (compressedFile == null) {
+            Toast.makeText(requireContext(), "Failed to process image", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val (latitude, longitude) = currentLocation ?: (null to null)
+        createReportViewModel.uploadReport(
+            token = token,
+            title = title,
+            description = description,
+            file = compressedFile,
+            latitude = latitude,
+            longitude = longitude
+        )
+    }
+
+    private fun takePhoto() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+        } else {
+            captureImage()
+        }
+    }
+
+    private fun captureImage() {
+        val photoFile: File? = createImageFile()
+        if (photoFile != null) {
+            val photoURI: Uri = FileProvider.getUriForFile(
+                requireContext(),
+                "${requireContext().packageName}.fileprovider",
+                photoFile
+            )
+            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+            }
+            requestImageCapture.launch(intent)
+        } else {
+            Toast.makeText(requireContext(), "Failed to create image file", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun createImageFile(): File? {
+        return try {
+            val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+            val storageDir: File = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
+
+            File.createTempFile(
+                "JPEG_${timeStamp}_",
+                ".jpg",
+                storageDir
+            ).apply {
+                currentPhotoPath = absolutePath
+            }
+        } catch (ex: IOException) {
+            Log.e("CreateReportFragment", "Error creating image file", ex)
+            null
+        }
+    }
+
+    private val requestImageCapture = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            currentPhotoPath?.let { path ->
+                val imageUri = Uri.fromFile(File(path))
+                selectedImageUri = imageUri
+                binding.imagePreview.setImageURI(imageUri)
+                binding.imagePreview.visibility = View.VISIBLE
+            }
+        } else if (result.resultCode == Activity.RESULT_CANCELED) {
+            currentPhotoPath = null
+            selectedImageUri = null
+            Toast.makeText(requireContext(), "Photo capture cancelled", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun setupLocationPermissionLauncher() {
+        requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                captureImage()
+            } else {
+                Toast.makeText(requireContext(), "Camera permission is required to take photos", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        locationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                getCurrentLocation()
+            } else {
+                Toast.makeText(requireContext(), "Location permission is required to get current location", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+
+    private fun getCurrentLocation() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+            fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                if (location != null) {
+                    currentLocation = Pair(location.latitude, location.longitude)
+                    Log.d("CreateReportFragment", "Location obtained: ${location.latitude}, ${location.longitude}")
+                } else {
+                    Log.d("CreateReportFragment", "Location is null")
+                    Toast.makeText(requireContext(), "Unable to get location", Toast.LENGTH_SHORT).show()
+                }
+            }.addOnFailureListener { exception ->
+                Log.e("CreateReportFragment", "Failed to get location", exception)
+            }
+        } else {
+            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
+
+
+
+
+    private val requestLocationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+        if (isGranted) {
+            getCurrentLocation()
+        } else {
+            Log.d("CreateReportFragment", "Location permission denied")
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        selectedImageUri?.let {
+            outState.putString("imageUri", it.toString())
+        }
+        outState.putString("photoPath", currentPhotoPath)
     }
 
     override fun onDestroyView() {

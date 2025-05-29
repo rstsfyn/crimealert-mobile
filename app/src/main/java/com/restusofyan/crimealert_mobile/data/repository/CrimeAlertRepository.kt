@@ -13,6 +13,7 @@ import com.restusofyan.crimealert_mobile.data.response.register.RegisterRequest
 import com.restusofyan.crimealert_mobile.data.response.register.RegisterResponse
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import retrofit2.Call
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -39,15 +40,15 @@ class CrimeAlertRepository @Inject constructor(
         return apiService.getReportsMe("Bearer $token")
     }
 
-    suspend fun createNewReport(
+    fun createNewReport(
         token: String,
-        picture: MultipartBody.Part,
         title: RequestBody,
         description: RequestBody,
         latitude: RequestBody?,
-        longitude: RequestBody?
-    ): Response<AddNewReportResponse> {
-        return apiService.createReport(token, picture, title, description, latitude, longitude)
+        longitude: RequestBody?,
+        picture: MultipartBody.Part,
+    ): Call<AddNewReportResponse> {
+        return apiService.createReport("Bearer $token", title, description, latitude, longitude, picture)
     }
 
     suspend fun getHandledHistory(token: String): Response<CasesHandledReportResponse> {

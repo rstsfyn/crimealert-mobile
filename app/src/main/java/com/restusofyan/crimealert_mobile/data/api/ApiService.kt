@@ -48,14 +48,14 @@ interface ApiService {
 
     @Multipart
     @POST("reports/")
-    suspend fun createReport(
+    fun createReport(
         @Header("Authorization") token: String,
-        @Part photo: MultipartBody.Part,
         @Part("title") title: RequestBody,
         @Part("description") description: RequestBody,
         @Part("latitude") latitude: RequestBody?,
-        @Part("longitude") longitude: RequestBody?
-    ): Response<AddNewReportResponse>
+        @Part("longitude") longitude: RequestBody?,
+        @Part picture: MultipartBody.Part,
+    ): Call<AddNewReportResponse>
 
     @GET("reports/me")
     suspend fun getReportsMe(
