@@ -106,12 +106,6 @@
             android:text="Tanggal kejadian"
             android:layout_marginTop="8dp"/>
 
-        <TextView
-            android:id="@+id/tvStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Status penanganan"
-            android:layout_marginTop="8dp"/>
     </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

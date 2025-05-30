@@ -75,7 +75,6 @@ class DetailCasesActivity : AppCompatActivity(), OnMapReadyCallback {
             val tIndex = raw.indexOf('T')
             if (tIndex != -1 && raw.length >= tIndex + 6) raw.substring(tIndex + 1, tIndex + 6) else "--:--"
         } ?: "--:--"
-        binding.tvStatus.text = intent.getStringExtra("news_status")
         var imageUrl = intent.getStringExtra("news_image_url")
         imageUrl = imageUrl?.replace("localhost", "10.0.2.2")
         if (!imageUrl.isNullOrEmpty()) {
