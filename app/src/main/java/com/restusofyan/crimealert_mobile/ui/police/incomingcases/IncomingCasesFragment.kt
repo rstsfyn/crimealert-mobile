@@ -1,54 +1,47 @@
-package com.restusofyan.crimealert_mobile.ui.police.caseshandled
+package com.restusofyan.crimealert_mobile.ui.police.incomingcases
 
 import android.content.Context
 import android.content.Intent
+import androidx.fragment.app.viewModels
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.restusofyan.crimealert_mobile.R
-import com.restusofyan.crimealert_mobile.data.model.CasesModel
-import com.restusofyan.crimealert_mobile.databinding.FragmentCasesHandledHistoryBinding
-import com.restusofyan.crimealert_mobile.databinding.FragmentReportHistoryBinding
+import com.restusofyan.crimealert_mobile.databinding.FragmentCaseslistPoliceBinding
+import com.restusofyan.crimealert_mobile.databinding.FragmentIncomingCasesBinding
 import com.restusofyan.crimealert_mobile.ui.adapter.CasesAdapter
-import com.restusofyan.crimealert_mobile.ui.adapter.CasesHandledAdapter
 import com.restusofyan.crimealert_mobile.ui.police.detailcasespolice.DetailCasesPoliceActivity
-import com.restusofyan.crimealert_mobile.ui.users.detailcases.DetailCasesActivity
 import com.restusofyan.crimealert_mobile.ui.users.news.NewsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
-class CasesHandledHistoryFragment : Fragment() {
 
-    private var _binding: FragmentCasesHandledHistoryBinding? = null
+@AndroidEntryPoint
+class IncomingCasesFragment : Fragment() {
+
+    private var _binding: FragmentIncomingCasesBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var casesHandledAdapter: CasesHandledAdapter
-    private val viewModel: CasesHandledHistoryViewModel by viewModels()
+    private lateinit var casesAdapter: CasesAdapter
+    private val viewModel: IncomingCasesViewModel by viewModels()
+
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
+        inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentCasesHandledHistoryBinding.inflate(inflater, container, false)
+        _binding = FragmentIncomingCasesBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        (activity as? AppCompatActivity)?.findViewById<View>(R.id.nav_view)?.visibility =
-            View.GONE
-
         setupRecyclerView()
-        setupButton()
         setupObservers()
+        setupButton()
 
         val token = ambilTokenSession()
         if (token != null) {
@@ -59,7 +52,7 @@ class CasesHandledHistoryFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        casesHandledAdapter = CasesHandledAdapter(emptyList()) { selectedNews ->
+        casesAdapter = CasesAdapter(emptyList()) { selectedNews ->
             val intent = Intent(requireContext(), DetailCasesPoliceActivity::class.java).apply {
                 putExtra("report_id", selectedNews.idReport)
                 putExtra("report_title", selectedNews.title)
@@ -74,15 +67,15 @@ class CasesHandledHistoryFragment : Fragment() {
             startActivity(intent)
         }
 
-        binding.rvCaseshandledhistory.apply {
+        binding.rvIncomingcases.apply {
             layoutManager = LinearLayoutManager(requireContext())
-            adapter = casesHandledAdapter
+            adapter = casesAdapter
         }
     }
 
     private fun setupObservers() {
         viewModel.reports.observe(viewLifecycleOwner) { data ->
-            casesHandledAdapter.updateData(data)
+            casesAdapter.updateData(data)
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
@@ -109,8 +102,6 @@ class CasesHandledHistoryFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-
-        (activity as? AppCompatActivity)?.findViewById<View>(R.id.nav_view)?.visibility =
-            View.VISIBLE
+        _binding = null
     }
 }

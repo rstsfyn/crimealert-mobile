@@ -70,7 +70,7 @@ interface ApiService {
     @PUT("reports/{id}/status")
     suspend fun updateStatus(
         @Header("Authorization") token: String,
-        @Path("id_report") reportId: Int,
+        @Path("id") reportId: Int,
         @Body statusBody: UpdateStatusRequest
     ): Response<UpdateStatusReportResponse>
 

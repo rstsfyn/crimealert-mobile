@@ -5,8 +5,12 @@ import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -17,14 +21,24 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.restusofyan.crimealert_mobile.R
+import com.restusofyan.crimealert_mobile.data.repository.CrimeAlertRepository
 import com.restusofyan.crimealert_mobile.databinding.ActivityDetailCasesPoliceBinding
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class DetailCasesPoliceActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var binding: ActivityDetailCasesPoliceBinding
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
     private var googleMap: GoogleMap? = null
     private lateinit var caseLocation: LatLng
+    private var reportId: Int = 0
+    private var currentStatus: String = ""
+
+    @Inject
+    lateinit var repository: CrimeAlertRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +50,7 @@ class DetailCasesPoliceActivity : AppCompatActivity(), OnMapReadyCallback {
         setupButton()
         setupBottomSheet()
         setupDetailCasesData()
+        setupStatusSpinner()
         setupMap()
     }
 
@@ -73,11 +88,20 @@ class DetailCasesPoliceActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun setupDetailCasesData() {
-        binding.tvTitle.text = intent.getStringExtra("news_title")
-        binding.tvDescription.text = intent.getStringExtra("news_description")
-        binding.tvDate.text = intent.getStringExtra("news_date")
-        binding.tvStatus.text = intent.getStringExtra("news_status")
-        val imageUrl = intent.getStringExtra("news_image_url")
+        binding.tvTitle.text = intent.getStringExtra("report_title")
+        binding.tvDescription.text = intent.getStringExtra("report_description")
+        binding.tvDate.text = intent.getStringExtra("report_date")
+        binding.tvNewsTimestamp.text = intent.getStringExtra("report_timestamp")?.let { raw ->
+            val tIndex = raw.indexOf('T')
+            if (tIndex != -1 && raw.length >= tIndex + 6) raw.substring(tIndex + 1, tIndex + 6) else "--:--"
+        } ?: "--:--"
+
+        // Get report ID and current status
+        reportId = intent.getIntExtra("report_id", 0)
+        currentStatus = intent.getStringExtra("report_status") ?: "belum_ditangani"
+
+        var imageUrl = intent.getStringExtra("report_image_url")
+        imageUrl = imageUrl?.replace("localhost", "10.0.2.2")
         if (!imageUrl.isNullOrEmpty()) {
             Glide.with(this)
                 .load(imageUrl)
@@ -86,6 +110,95 @@ class DetailCasesPoliceActivity : AppCompatActivity(), OnMapReadyCallback {
                 .into(binding.ivCaseImage)
         } else {
             binding.ivCaseImage.setImageResource(R.drawable.bg_photoreport)
+        }
+    }
+
+    private fun setupStatusSpinner() {
+        val statusOptions = listOf("belum_ditangani", "sedang_ditangani", "sudah_ditangani")
+        val statusDisplayNames = listOf("Belum Ditangani", "Sedang Ditangani", "Sudah Ditangani")
+
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, statusDisplayNames)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinnerStatus.adapter = adapter
+
+        // Set current status as selected
+        val currentIndex = statusOptions.indexOf(currentStatus)
+        if (currentIndex != -1) {
+            binding.spinnerStatus.setSelection(currentIndex)
+        }
+
+        binding.spinnerStatus.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val selectedStatus = statusOptions[position]
+                if (selectedStatus != currentStatus) {
+                    showUpdateStatusDialog(selectedStatus, statusDisplayNames[position])
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+    }
+
+    private fun showUpdateStatusDialog(newStatus: String, displayName: String) {
+        AlertDialog.Builder(this)
+            .setTitle("Konfirmasi Perubahan Status")
+            .setMessage("Apakah Anda yakin ingin mengubah status menjadi \"$displayName\"?")
+            .setPositiveButton("Ya") { _, _ ->
+                updateCaseStatus(newStatus)
+            }
+            .setNegativeButton("Batal") { _, _ ->
+                // Reset spinner to current status
+                val statusOptions = listOf("belum_ditangani", "sedang_ditangani", "sudah_ditangani")
+                val currentIndex = statusOptions.indexOf(currentStatus)
+                if (currentIndex != -1) {
+                    binding.spinnerStatus.setSelection(currentIndex)
+                }
+            }
+            .show()
+    }
+
+    private fun updateCaseStatus(newStatus: String) {
+        lifecycleScope.launch {
+            try {
+                // Get token from SharedPreferences or wherever it's stored
+                val token = getSharedPreferences("user_session", MODE_PRIVATE)
+                    .getString("token", "") ?: ""
+
+                if (token.isEmpty()) {
+                    Toast.makeText(this@DetailCasesPoliceActivity,
+                        "Token tidak ditemukan", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+
+                val response = repository.updateReportStatus(token, reportId, newStatus)
+
+                if (response.isSuccessful && response.body()?.error == false) {
+                    currentStatus = newStatus
+                    Toast.makeText(this@DetailCasesPoliceActivity,
+                        "Status berhasil diperbarui", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@DetailCasesPoliceActivity,
+                        "Gagal memperbarui status: ${response.body()?.message}",
+                        Toast.LENGTH_SHORT).show()
+
+                    // Reset spinner to current status
+                    val statusOptions = listOf("belum_ditangani", "sedang_ditangani", "sudah_ditangani")
+                    val currentIndex = statusOptions.indexOf(currentStatus)
+                    if (currentIndex != -1) {
+                        binding.spinnerStatus.setSelection(currentIndex)
+                    }
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@DetailCasesPoliceActivity,
+                    "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+
+                // Reset spinner to current status
+                val statusOptions = listOf("belum_ditangani", "sedang_ditangani", "sudah_ditangani")
+                val currentIndex = statusOptions.indexOf(currentStatus)
+                if (currentIndex != -1) {
+                    binding.spinnerStatus.setSelection(currentIndex)
+                }
+            }
         }
     }
 
@@ -104,8 +217,8 @@ class DetailCasesPoliceActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun updateCaseLocation() {
-        val latitude = intent.getDoubleExtra("news_latitude", 0.0)
-        val longitude = intent.getDoubleExtra("news_longitude", 0.0)
+        val latitude = intent.getDoubleExtra("report_latitude", 0.0)
+        val longitude = intent.getDoubleExtra("report_longitude", 0.0)
         caseLocation = LatLng(latitude, longitude)
 
         googleMap?.apply {

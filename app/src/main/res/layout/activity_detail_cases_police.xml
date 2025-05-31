@@ -101,17 +101,30 @@
             android:layout_marginTop="8dp"/>
 
         <TextView
-            android:id="@+id/tvStatus"
+            android:id="@+id/tv_news_timestamp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Status penanganan"
+            android:text="Jam Kejadian"
             android:layout_marginTop="8dp"/>
 
-<!--        <Spinner-->
-<!--            android:id="@+id/tvStatus"-->
-<!--            android:layout_width="match_parent"-->
+<!--        &lt;!&ndash; Status Label &ndash;&gt;-->
+<!--        <TextView-->
+<!--            android:layout_width="wrap_content"-->
 <!--            android:layout_height="wrap_content"-->
-<!--            android:layout_marginTop="8dp" />-->
+<!--            android:text="Status Penanganan:"-->
+<!--            android:layout_marginTop="16dp"-->
+<!--            android:textStyle="bold"-->
+<!--            android:textSize="14sp"/>-->
+
+        <!-- Status Spinner (replacing TextView) -->
+        <Spinner
+            android:id="@+id/spinner_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="8dp"
+            android:background="@android:drawable/btn_dropdown"
+            android:padding="12dp"/>
 
     </LinearLayout>
 

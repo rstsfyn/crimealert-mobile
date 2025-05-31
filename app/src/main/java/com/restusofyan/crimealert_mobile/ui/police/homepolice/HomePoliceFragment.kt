@@ -68,16 +68,16 @@ class HomePoliceFragment : Fragment() {
 
     private fun setupRecyclerView() {
         casesAdapter = CasesAdapter(emptyList()) { selectedNews ->
-            val intent = Intent(requireContext(), DetailCasesActivity::class.java).apply {
-                putExtra("news_id", selectedNews.idReport)
-                putExtra("news_title", selectedNews.title)
-                putExtra("news_description", selectedNews.description)
-                putExtra("news_image_url", selectedNews.picture)
-                putExtra("news_timestamp", selectedNews.createdAt)
-                putExtra("news_date", selectedNews.createdAt?.substringBefore("T"))
-                putExtra("news_status", selectedNews.statusKasus)
-                putExtra("news_latitude", selectedNews.map?.latitude)
-                putExtra("news_longitude", selectedNews.map?.longitude)
+            val intent = Intent(requireContext(), DetailCasesPoliceActivity::class.java).apply {
+                putExtra("report_id", selectedNews.idReport)
+                putExtra("report_title", selectedNews.title)
+                putExtra("report_description", selectedNews.description)
+                putExtra("report_image_url", selectedNews.picture)
+                putExtra("report_timestamp", selectedNews.createdAt)
+                putExtra("report_date", selectedNews.createdAt?.substringBefore("T"))
+                putExtra("report_status", selectedNews.statusKasus)
+                putExtra("report_latitude", selectedNews.map?.latitude)
+                putExtra("report_longitude", selectedNews.map?.longitude)
             }
             startActivity(intent)
         }
@@ -119,10 +119,10 @@ class HomePoliceFragment : Fragment() {
 
 
     private fun setupButton() {
-//        binding.createreportpolice.setOnClickListener {
-//            Log.d("HomeFragment", "Create Report clicked!")
-//            findNavController().navigate(R.id.navigation_create_report_police)
-//        }
+        binding.incomingcases.setOnClickListener {
+            Log.d("HomeFragment", "Create Incoming cases")
+            findNavController().navigate(R.id.navigation_incoming_cases)
+        }
 
         binding.casesHandledHistory.setOnClickListener {
             Log.d("HomeFragment", "Create Report clicked!")
