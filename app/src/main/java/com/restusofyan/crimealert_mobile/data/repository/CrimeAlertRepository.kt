@@ -6,6 +6,7 @@ import com.restusofyan.crimealert_mobile.data.response.casesreports.CasesReportR
 import com.restusofyan.crimealert_mobile.data.response.casesreports.UpdateStatusReportResponse
 import com.restusofyan.crimealert_mobile.data.response.casesreports.UpdateStatusRequest
 import com.restusofyan.crimealert_mobile.data.response.createreport.AddNewReportResponse
+import com.restusofyan.crimealert_mobile.data.response.insidens.UploadInsidensResponse
 import com.restusofyan.crimealert_mobile.data.response.login.LoginRequest
 import com.restusofyan.crimealert_mobile.data.response.login.LoginResponse
 import com.restusofyan.crimealert_mobile.data.response.profile.MyProfileResponse
@@ -58,5 +59,15 @@ class CrimeAlertRepository @Inject constructor(
     suspend fun updateReportStatus(token: String, reportId: Int, status: String): Response<UpdateStatusReportResponse> {
         return apiService.updateStatus("Bearer $token", reportId, UpdateStatusRequest(status))
     }
+
+    suspend fun uploadScreamDetection(
+        token: String,
+        voiceDetection: RequestBody,
+        latitude: RequestBody?,
+        longitude: RequestBody?
+    ): Response<UploadInsidensResponse> {
+        return apiService.uploadInsidens("Bearer $token", voiceDetection, latitude, longitude)
+    }
+
 
 }

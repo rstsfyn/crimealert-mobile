@@ -61,10 +61,7 @@ class CreateReportFragment : Fragment() {
         setupObservers()
         setupLocationPermissionLauncher()
 
-        // Restore state if needed
         restoreStateIfNeeded(savedInstanceState)
-
-        // Get current location
         getCurrentLocation()
 
         return binding.root

@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -18,19 +17,14 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
 import com.restusofyan.crimealert_mobile.R
-import com.restusofyan.crimealert_mobile.data.model.CasesModel
 import com.restusofyan.crimealert_mobile.databinding.FragmentHomeBinding
 import com.restusofyan.crimealert_mobile.ui.adapter.NewsAdapter
 import com.restusofyan.crimealert_mobile.ui.customview.CustomDialogVoiceDetectionFragment
 import com.restusofyan.crimealert_mobile.ui.users.detailcases.DetailCasesActivity
-import com.restusofyan.crimealert_mobile.ui.users.news.NewsViewModel
-import com.restusofyan.crimealert_mobile.utils.AudioClassificationHelper
+import com.restusofyan.crimealert_mobile.utils.ScreamDetectionManager
 import com.restusofyan.crimealert_mobile.utils.VoiceDetectionService
 import dagger.hilt.android.AndroidEntryPoint
-import org.tensorflow.lite.support.label.Category
 
 @AndroidEntryPoint
 class HomeFragment : Fragment() {
@@ -40,8 +34,6 @@ class HomeFragment : Fragment() {
     private val viewModel: HomeViewModel by viewModels()
 
     private lateinit var newsAdapter: NewsAdapter
-    private var audioHelper: AudioClassificationHelper? = null
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -60,6 +52,18 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private val screamDetectionListener = object : ScreamDetectionManager.ScreamDetectionListener {
+        override fun onScreamDetected(latitude: Double, longitude: Double) {
+            activity?.runOnUiThread {
+                Toast.makeText(
+                    requireContext(),
+                    "🚨 Screaming detected!\nLocation shared: $latitude, $longitude",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -72,13 +76,13 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
         setupRecyclerView()
         setupObservers()
         setupButton()
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
         displayUserInfo()
         ambilDataNews()
+
+        ScreamDetectionManager.getInstance().addListener(screamDetectionListener)
     }
 
     private fun ambilDataNews() {
@@ -143,7 +147,6 @@ class HomeFragment : Fragment() {
         viewModel.error.observe(viewLifecycleOwner) { errorMsg ->
             errorMsg?.let {
                 Log.e("NewsFragment", it)
-                // Tampilkan Snackbar / Toast jika perlu
             }
         }
     }
@@ -163,7 +166,6 @@ class HomeFragment : Fragment() {
             if (hasPermissions()) {
                 showVoiceDetectionDialog()
             } else {
-                // Request both RECORD_AUDIO and ACCESS_FINE_LOCATION permissions
                 permissionLauncher.launch(
                     arrayOf(
                         Manifest.permission.RECORD_AUDIO,
@@ -196,36 +198,10 @@ class HomeFragment : Fragment() {
     private fun showVoiceDetectionDialog() {
         val dialog = CustomDialogVoiceDetectionFragment()
         dialog.onYesClick = {
-            setupAudioHelper()
-            audioHelper?.startAudioClassification()
-            Toast.makeText(requireContext(), "Voice detection started", Toast.LENGTH_SHORT).show()
             startVoiceDetectionService()
+            Toast.makeText(requireContext(), "Voice detection started", Toast.LENGTH_SHORT).show()
         }
         dialog.show(parentFragmentManager, CustomDialogVoiceDetectionFragment::class.java.simpleName)
-    }
-
-    private fun setupAudioHelper() {
-        audioHelper = AudioClassificationHelper(
-            context = requireContext(),
-            classifierListener = object : AudioClassificationHelper.ClassifierListener {
-                override fun onError(error: String) {
-                    Log.e("AudioClassifier", error)
-                }
-
-                override fun onResults(results: List<Category>, inferenceTime: Long) {
-                    for (category in results) {
-                        Log.d("AudioClassifier", "Label: ${category.label}, Score: ${category.score}")
-                        if (category.label == "scream" && category.score > 0.9) {
-                            Log.d("ScreamDetected", "Screaming sound detected with score ${category.score}")
-                            audioHelper?.stopAudioClassification()
-
-                            handleScreamDetected()
-                            break
-                        }
-                    }
-                }
-            }
-        )
     }
 
     private fun startVoiceDetectionService() {
@@ -235,47 +211,7 @@ class HomeFragment : Fragment() {
         } else {
             requireContext().startService(serviceIntent)
         }
-    }
-
-    private fun stopVoiceDetectionService() {
-        val serviceIntent = Intent(requireContext(), VoiceDetectionService::class.java)
-        requireContext().stopService(serviceIntent)
-    }
-
-    private fun handleScreamDetected() {
-        audioHelper?.stopAudioClassification()
-        stopVoiceDetectionService()
-
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            Toast.makeText(requireContext(), "Permission lokasi tidak diberikan", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-            if (location != null) {
-                val latitude = location.latitude
-                val longitude = location.longitude
-                Log.d("ScreamDetected", "Location captured: Lat: $latitude, Lng: $longitude")
-
-                saveScreamLocation(latitude, longitude)
-
-                Toast.makeText(requireContext(), "Screaming detected!\nLocation shared!", Toast.LENGTH_LONG).show()
-            } else {
-                Toast.makeText(requireContext(), "Gagal mendapatkan lokasi", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun saveScreamLocation(latitude: Double, longitude: Double) {
-        // Simulasi penyimpanan ke server / Firebase / database lokal
-        Log.d("ScreamDetected", "Saving scream location to database...")
-        Log.d("ScreamDetected", "Saved location: Latitude = $latitude, Longitude = $longitude")
-
-        // TODO: Implementasi penyimpanan ke Firebase atau API di sini
+        Log.d("HomeFragment", "VoiceDetectionService started")
     }
 
     private fun ambilTokenSession(): String? {
@@ -285,7 +221,11 @@ class HomeFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+
+        // Remove scream detection listener
+        ScreamDetectionManager.getInstance().removeListener(screamDetectionListener)
+
         _binding = null
-        audioHelper?.stopAudioClassification()
+        // Don't stop the service here - let it run in background
     }
 }

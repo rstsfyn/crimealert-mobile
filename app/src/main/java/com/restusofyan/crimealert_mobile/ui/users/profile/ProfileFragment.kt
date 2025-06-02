@@ -48,15 +48,30 @@ class ProfileFragment : Fragment() {
         setupButton()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Update switch state when fragment resumes
+        updateSwitchState()
+    }
+
+    private fun updateSwitchState() {
+        val switchVoiceDetection = binding.root.findViewById<Switch>(R.id.switchVoiceDetection)
+        switchVoiceDetection.isChecked = isServiceRunning(VoiceDetectionService::class.java)
+    }
+
     private fun setupSwitch() {
         val switchVoiceDetection = binding.root.findViewById<Switch>(R.id.switchVoiceDetection)
-
+        
         switchVoiceDetection.isChecked = isServiceRunning(VoiceDetectionService::class.java)
+
         switchVoiceDetection.setOnCheckedChangeListener { _, isChecked ->
+            Log.d("ProfileFragment", "Switch changed to: $isChecked")
             if (isChecked) {
                 startVoiceDetectionService()
+                Toast.makeText(requireContext(), "Voice detection enabled", Toast.LENGTH_SHORT).show()
             } else {
                 stopVoiceDetectionService()
+                Toast.makeText(requireContext(), "Voice detection disabled", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -84,26 +99,37 @@ class ProfileFragment : Fragment() {
     }
 
     private fun startVoiceDetectionService() {
-        val startServiceIntent = Intent(requireContext(), VoiceDetectionService::class.java)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            requireActivity().startForegroundService(startServiceIntent)
-        } else {
-            requireActivity().startService(startServiceIntent)
+        try {
+            val startServiceIntent = Intent(requireContext(), VoiceDetectionService::class.java)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                requireActivity().startForegroundService(startServiceIntent)
+            } else {
+                requireActivity().startService(startServiceIntent)
+            }
+            Log.d("ProfileFragment", "VoiceDetectionService start requested")
+        } catch (e: Exception) {
+            Log.e("ProfileFragment", "Error starting VoiceDetectionService", e)
+            Toast.makeText(requireContext(), "Failed to start voice detection", Toast.LENGTH_SHORT).show()
         }
-        Log.d("ProfileFragment", "VoiceDetectionService started")
     }
 
     private fun stopVoiceDetectionService() {
         try {
-            if (isServiceRunning(VoiceDetectionService::class.java)) {
-                val stopServiceIntent = Intent(requireContext(), VoiceDetectionService::class.java)
-                val stopped = requireActivity().stopService(stopServiceIntent)
-                Log.d("ProfileFragment", "VoiceDetectionService stopped: $stopped")
-            } else {
-                Log.d("ProfileFragment", "VoiceDetectionService is not running")
+            val stopServiceIntent = Intent(requireContext(), VoiceDetectionService::class.java)
+            val stopped = requireActivity().stopService(stopServiceIntent)
+            Log.d("ProfileFragment", "VoiceDetectionService stop requested, result: $stopped")
+
+            if (!stopped) {
+                Log.w("ProfileFragment", "Service didn't stop gracefully, checking if still running...")
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    if (isServiceRunning(VoiceDetectionService::class.java)) {
+                        Log.w("ProfileFragment", "Service still running after stop request")
+                    }
+                }, 1000)
             }
         } catch (e: Exception) {
             Log.e("ProfileFragment", "Error stopping VoiceDetectionService", e)
+            Toast.makeText(requireContext(), "Error stopping voice detection", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -116,20 +142,27 @@ class ProfileFragment : Fragment() {
     private fun showLogoutDialog() {
         val dialog = CustomDialogLogoutFragment()
         dialog.onYesClick = {
+            if (isServiceRunning(VoiceDetectionService::class.java)) {
+                stopVoiceDetectionService()
+            }
             hapusSession()
         }
         dialog.onNoClick = {
-            // Optional: tampilkan toast atau log
             Toast.makeText(requireContext(), "Logout dibatalkan", Toast.LENGTH_SHORT).show()
         }
         dialog.show(parentFragmentManager, "CustomDialogLogoutFragment")
     }
 
     private fun isServiceRunning(serviceClass: Class<*>): Boolean {
-        val activityManager = requireActivity().getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        @Suppress("DEPRECATION")
-        return activityManager.getRunningServices(Int.MAX_VALUE)
-            .any { it.service.className == serviceClass.name }
+        return try {
+            val activityManager = requireActivity().getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            @Suppress("DEPRECATION")
+            activityManager.getRunningServices(Int.MAX_VALUE)
+                .any { it.service.className == serviceClass.name }
+        } catch (e: Exception) {
+            Log.e("ProfileFragment", "Error checking if service is running", e)
+            false
+        }
     }
 
     override fun onDestroyView() {

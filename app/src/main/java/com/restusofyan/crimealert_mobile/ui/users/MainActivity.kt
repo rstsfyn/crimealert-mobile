@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Cek session login
+
         val sharedPref = getSharedPreferences("user_session", MODE_PRIVATE)
         val token = sharedPref.getString("token", null)
         val role = sharedPref.getString("role", null)

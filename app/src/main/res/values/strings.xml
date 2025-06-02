@@ -15,4 +15,6 @@
     <string name="hint_password">Enter your password</string>
     <string name="error_password">Password must have at least 8 characters</string>
     <string name="title_activity_detail_cases">DetailCasesActivity</string>
+    <string name="title_activity_validate_insidens">ValidateInsidensActivity</string>
+    <string name="title_activity_validate_insidens_police">ValidateInsidensPoliceActivity</string>
 </resources>
