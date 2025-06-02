@@ -18,6 +18,7 @@ import com.restusofyan.crimealert_mobile.databinding.FragmentProfileBinding
 import com.restusofyan.crimealert_mobile.ui.auth.LoginActivity
 import com.restusofyan.crimealert_mobile.utils.VoiceDetectionService
 import dagger.hilt.android.AndroidEntryPoint
+import com.restusofyan.crimealert_mobile.ui.customview.CustomDialogLogoutFragment
 
 @AndroidEntryPoint
 class ProfileFragment : Fragment() {
@@ -108,8 +109,20 @@ class ProfileFragment : Fragment() {
 
     private fun logout() {
         binding.btnLogout.setOnClickListener {
+            showLogoutDialog()
+        }
+    }
+
+    private fun showLogoutDialog() {
+        val dialog = CustomDialogLogoutFragment()
+        dialog.onYesClick = {
             hapusSession()
         }
+        dialog.onNoClick = {
+            // Optional: tampilkan toast atau log
+            Toast.makeText(requireContext(), "Logout dibatalkan", Toast.LENGTH_SHORT).show()
+        }
+        dialog.show(parentFragmentManager, "CustomDialogLogoutFragment")
     }
 
     private fun isServiceRunning(serviceClass: Class<*>): Boolean {

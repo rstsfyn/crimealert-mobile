@@ -128,6 +128,11 @@ class HomePoliceFragment : Fragment() {
             Log.d("HomeFragment", "Create Report clicked!")
             findNavController().navigate(R.id.navigation_cases_handled_history)
         }
+
+        binding.tvTrendingcasesSeeall.setOnClickListener {
+            Log.d("HomeFragment", "See all clicked!")
+            findNavController().navigate(R.id.navigation_caseslist_police)
+        }
     }
 
     private fun ambilTokenSession(): String? {

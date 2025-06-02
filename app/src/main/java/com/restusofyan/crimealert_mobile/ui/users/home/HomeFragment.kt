@@ -86,7 +86,6 @@ class HomeFragment : Fragment() {
         if (token != null) {
             viewModel.fetchReports(token)
         } else {
-            // Tangani kondisi token null, misal tampilkan pesan atau redirect ke login
             Log.e("NewsFragment", "Token user tidak ditemukan")
         }
     }

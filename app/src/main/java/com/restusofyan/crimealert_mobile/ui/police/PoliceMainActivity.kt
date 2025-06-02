@@ -12,6 +12,7 @@ import com.restusofyan.crimealert_mobile.R
 import com.restusofyan.crimealert_mobile.databinding.ActivityPoliceMainBinding
 import com.restusofyan.crimealert_mobile.ui.auth.LoginActivity
 import android.util.Log
+import com.restusofyan.crimealert_mobile.ui.customview.CustomDialogLogoutFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -54,14 +55,25 @@ class PoliceMainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.logout -> {
-                    sharedPref.edit().clear().apply()
-                    startActivity(Intent(this, LoginActivity::class.java))
-                    finish()
+                    showLogoutDialog()
                     true
                 }
                 else -> false
             }
         }
     }
-
+    private fun showLogoutDialog() {
+        val dialog = CustomDialogLogoutFragment()
+        dialog.onYesClick = {
+            val sharedPref = getSharedPreferences("user_session", MODE_PRIVATE)
+            sharedPref.edit().clear().apply()
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+        }
+        dialog.onNoClick = {
+            // Optional: Tambah log atau Toast jika dibatalkan
+            Log.d("PoliceMainActivity", "Logout dibatalkan oleh user.")
+        }
+        dialog.show(supportFragmentManager, "LogoutDialog")
+    }
 }
