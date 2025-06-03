@@ -6,6 +6,7 @@ import com.restusofyan.crimealert_mobile.data.response.casesreports.CasesReportR
 import com.restusofyan.crimealert_mobile.data.response.casesreports.UpdateStatusReportResponse
 import com.restusofyan.crimealert_mobile.data.response.casesreports.UpdateStatusRequest
 import com.restusofyan.crimealert_mobile.data.response.createreport.AddNewReportResponse
+import com.restusofyan.crimealert_mobile.data.response.insidens.UploadInsidensRequest
 import com.restusofyan.crimealert_mobile.data.response.insidens.UploadInsidensResponse
 import com.restusofyan.crimealert_mobile.data.response.login.LoginRequest
 import com.restusofyan.crimealert_mobile.data.response.login.LoginResponse
@@ -75,14 +76,10 @@ interface ApiService {
         @Body statusBody: UpdateStatusRequest
     ): Response<UpdateStatusReportResponse>
 
-    @Multipart
     @POST("insidens/")
     suspend fun uploadInsidens(
         @Header("Authorization") token: String,
-        @Part("voice_detection") voice_detection: RequestBody,
-        @Part("latitude") latitude: RequestBody?,
-        @Part("longitude") longitude: RequestBody?,
+        @Body request: UploadInsidensRequest
     ): Response<UploadInsidensResponse>
-
 
 }

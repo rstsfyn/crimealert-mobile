@@ -70,7 +70,6 @@ class CreateReportViewModel @Inject constructor(
         latitude: Double? = null,
         longitude: Double? = null
     ) {
-        // Validasi input
         if (title.isBlank()) {
             _uploadResult.value = UploadResult.Error("Title cannot be empty")
             return

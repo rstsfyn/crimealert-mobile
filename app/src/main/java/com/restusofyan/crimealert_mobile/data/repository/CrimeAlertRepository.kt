@@ -6,6 +6,7 @@ import com.restusofyan.crimealert_mobile.data.response.casesreports.CasesReportR
 import com.restusofyan.crimealert_mobile.data.response.casesreports.UpdateStatusReportResponse
 import com.restusofyan.crimealert_mobile.data.response.casesreports.UpdateStatusRequest
 import com.restusofyan.crimealert_mobile.data.response.createreport.AddNewReportResponse
+import com.restusofyan.crimealert_mobile.data.response.insidens.UploadInsidensRequest
 import com.restusofyan.crimealert_mobile.data.response.insidens.UploadInsidensResponse
 import com.restusofyan.crimealert_mobile.data.response.login.LoginRequest
 import com.restusofyan.crimealert_mobile.data.response.login.LoginResponse
@@ -62,12 +63,15 @@ class CrimeAlertRepository @Inject constructor(
 
     suspend fun uploadScreamDetection(
         token: String,
-        voiceDetection: RequestBody,
-        latitude: RequestBody?,
-        longitude: RequestBody?
+        voiceDetection: String,
+        latitude: Double,
+        longitude: Double
     ): Response<UploadInsidensResponse> {
-        return apiService.uploadInsidens("Bearer $token", voiceDetection, latitude, longitude)
+        val request = UploadInsidensRequest(
+            voice_detection = voiceDetection,
+            latitude = latitude,
+            longitude = longitude
+        )
+        return apiService.uploadInsidens("Bearer $token", request)
     }
-
-
 }

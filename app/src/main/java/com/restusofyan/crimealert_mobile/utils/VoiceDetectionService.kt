@@ -99,6 +99,7 @@ class VoiceDetectionService : Service() {
                         if (category.label == "scream" && category.score > 0.9) {
                             Log.d(TAG, "Screaming sound detected with score ${category.score}")
                             isScreamDetected = true
+                            audioHelper?.stopAudioClassification()
                             handleScreamDetected()
                             break
                         }
@@ -116,7 +117,6 @@ class VoiceDetectionService : Service() {
     private fun handleScreamDetected() {
         Log.d(TAG, "Handling scream detection...")
 
-        // Update notification
         updateNotificationForScreamDetected()
 
         if (ActivityCompat.checkSelfPermission(
@@ -135,7 +135,6 @@ class VoiceDetectionService : Service() {
                 val latitude = location.latitude
                 val longitude = location.longitude
 
-                // ✅ Better validation for coordinates
                 if (isValidCoordinate(latitude, longitude)) {
                     Log.d(TAG, "Location captured: Lat: $latitude, Lng: $longitude")
                     saveScreamLocation(latitude, longitude)
@@ -144,7 +143,6 @@ class VoiceDetectionService : Service() {
                     stopSelf()
                 } else {
                     Log.e(TAG, "Invalid coordinates: Lat: $latitude, Lng: $longitude")
-                    // Try to get fresh location
                     requestFreshLocation()
                 }
             } else {
@@ -177,7 +175,6 @@ class VoiceDetectionService : Service() {
             return
         }
 
-        // Use getCurrentLocation for fresh location
         fusedLocationClient.getCurrentLocation(
             com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
             null
@@ -188,7 +185,6 @@ class VoiceDetectionService : Service() {
                 showScreamDetectedNotification(location.latitude, location.longitude)
             } else {
                 Log.e(TAG, "Failed to get valid fresh location")
-                // Show notification without coordinates
                 showScreamDetectedNotification(0.0, 0.0, isLocationUnavailable = true)
             }
             stopForeground(true)
@@ -227,24 +223,19 @@ class VoiceDetectionService : Service() {
         val contentText = if (isLocationUnavailable) {
             "Scream detected! Location unavailable"
         } else {
-            "Scream detected! Location: $latitude, $longitude"
+            "Ada kejahatan disini! Location: $latitude, $longitude, ayo bantu saudaramu!"
         }
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("🚨 Emergency Alert!")
             .setContentText(contentText)
-            .setSmallIcon(R.drawable.ic_mic_putih)
+            .setSmallIcon(R.drawable.ic_alertreport)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .build()
 
         notificationManager.notify(NOTIF_ID + 1, notification)
-
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            val normalNotification = buildNotification()
-            notificationManager.notify(NOTIF_ID, normalNotification)
-        }, 5000)
     }
 
     private fun saveScreamLocation(latitude: Double, longitude: Double) {
@@ -257,41 +248,46 @@ class VoiceDetectionService : Service() {
             return
         }
 
-        // ✅ Remove the problematic 0.0 check - use proper validation instead
         if (!isValidCoordinate(latitude, longitude)) {
             Log.e(TAG, "Invalid coordinates: Lat: $latitude, Lng: $longitude")
             return
         }
 
-        val voiceDetection = RequestBody.create("text/plain".toMediaTypeOrNull(), "scream")
-        val latBody = RequestBody.create("text/plain".toMediaTypeOrNull(), latitude.toString())
-        val longBody = RequestBody.create("text/plain".toMediaTypeOrNull(), longitude.toString())
+        Log.d(TAG, "Sending coordinates as Double - Lat: $latitude, Lng: $longitude")
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val response = repository.uploadScreamDetection(
-                    token, voiceDetection, latBody, longBody
+                    token,
+                    "scream",
+                    latitude,
+                    longitude
                 )
                 if (response.isSuccessful) {
                     Log.d(TAG, "Scream location saved to API successfully")
+                    response.body()?.let { responseBody ->
+                        Log.d(TAG, "Success response: $responseBody")
+                    }
                 } else {
                     Log.e(TAG, "Failed to save scream to API: ${response.code()}")
-                    // Log response body for debugging
                     response.errorBody()?.let { errorBody ->
-                        Log.e(TAG, "Error response: ${errorBody.string()}")
+                        val errorString = errorBody.string()
+                        Log.e(TAG, "Error response: $errorString")
                     }
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Error saving scream to API: ${e.message}")
+                Log.e(TAG, "Error saving scream to API: ${e.message}", e)
+            }finally {
+                stopForeground(true)
+                stopSelf()
             }
         }
-
         ScreamDetectionManager.getInstance().notifyScreamDetected(latitude, longitude)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "Service onStartCommand called")
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     override fun onDestroy() {
