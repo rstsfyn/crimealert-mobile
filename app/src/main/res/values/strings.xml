@@ -17,4 +17,6 @@
     <string name="title_activity_detail_cases">DetailCasesActivity</string>
     <string name="title_activity_validate_insidens">ValidateInsidensActivity</string>
     <string name="title_activity_validate_insidens_police">ValidateInsidensPoliceActivity</string>
+    <string name="detail_insidens">Detail Insidens</string>
+    <string name="title_activity_detail_insidens_police">DetailInsidensPoliceActivity</string>
 </resources>

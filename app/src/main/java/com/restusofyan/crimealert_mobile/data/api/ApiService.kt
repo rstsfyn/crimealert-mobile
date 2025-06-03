@@ -82,4 +82,16 @@ interface ApiService {
         @Body request: UploadInsidensRequest
     ): Response<UploadInsidensResponse>
 
+    @Multipart
+    @POST("reports/")
+    fun validateInsiden(
+        @Header("Authorization") token: String,
+        @Part("title") title: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part("latitude") latitude: RequestBody?,
+        @Part("longitude") longitude: RequestBody?,
+        @Part("id_insiden") incidentId: RequestBody,
+        @Part picture: MultipartBody.Part,
+    ): Call<AddNewReportResponse>
+
 }

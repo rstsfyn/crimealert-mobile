@@ -74,4 +74,16 @@ class CrimeAlertRepository @Inject constructor(
         )
         return apiService.uploadInsidens("Bearer $token", request)
     }
+
+    fun validateNewInsiden(
+        token: String,
+        title: RequestBody,
+        description: RequestBody,
+        latitude: RequestBody?,
+        longitude: RequestBody?,
+        picture: MultipartBody.Part,
+        incidentId: RequestBody,
+    ): Call<AddNewReportResponse> {
+        return apiService.validateInsiden("Bearer $token", title, description, latitude, longitude, incidentId, picture)
+    }
 }

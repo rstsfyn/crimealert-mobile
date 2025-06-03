@@ -221,11 +221,7 @@ class HomeFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-
-        // Remove scream detection listener
         ScreamDetectionManager.getInstance().removeListener(screamDetectionListener)
-
         _binding = null
-        // Don't stop the service here - let it run in background
     }
 }

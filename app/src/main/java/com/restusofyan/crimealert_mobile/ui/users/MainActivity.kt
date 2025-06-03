@@ -12,12 +12,14 @@ import androidx.navigation.ui.setupWithNavController
 import com.restusofyan.crimealert_mobile.R
 import com.restusofyan.crimealert_mobile.databinding.ActivityMainBinding
 import com.restusofyan.crimealert_mobile.ui.auth.LoginActivity
+import com.restusofyan.crimealert_mobile.utils.SocketManager
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var socketManager: SocketManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,5 +52,15 @@ class MainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+        socketManager = SocketManager(this)
+        socketManager.initializeSocket()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (::socketManager.isInitialized) {
+            socketManager.disconnect()
+        }
     }
 }

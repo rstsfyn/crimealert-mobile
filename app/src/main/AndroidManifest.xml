@@ -53,13 +53,21 @@
             android:value="YOUR_API_KEY" />
 
         <activity
-            android:name=".ui.police.validateinsidenspolice.ValidateInsidensPoliceActivity"
+            android:name=".ui.police.detailinsidenspolice.DetailInsidensPoliceActivity"
             android:exported="false"
-            android:label="@string/title_activity_validate_insidens_police" />
+            android:label="@string/title_activity_detail_insidens_police" />
         <activity
-            android:name=".ui.users.validateinsidens.ValidateInsidensActivity"
+            android:name=".ui.alluserpage.validateinsidens.ValidateInsidensActivity"
             android:exported="false"
-            android:label="@string/title_activity_validate_insidens" />
+            android:theme="@style/Theme.Crimealertmobile_Authpage" /> <!-- <activity -->
+        <!-- android:name=".ui.police.validateinsidenspolice.ValidateInsidensPoliceActivity" -->
+        <!-- android:exported="false" -->
+        <!-- android:label="@string/title_activity_validate_insidens_police" /> -->
+        <activity
+            android:name=".ui.alluserpage.detailinsidens.DetailInsidensActivity"
+            android:exported="false"
+            android:label="@string/detail_insidens"
+            android:theme="@style/Theme.Crimealertmobile_Authpage" />
         <activity
             android:name=".ui.users.detailcases.DetailCasesActivity"
             android:exported="false"

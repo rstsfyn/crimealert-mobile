@@ -13,12 +13,14 @@ import com.restusofyan.crimealert_mobile.databinding.ActivityPoliceMainBinding
 import com.restusofyan.crimealert_mobile.ui.auth.LoginActivity
 import android.util.Log
 import com.restusofyan.crimealert_mobile.ui.customview.CustomDialogLogoutFragment
+import com.restusofyan.crimealert_mobile.utils.SocketManager
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class PoliceMainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityPoliceMainBinding
+    private lateinit var socketManager: SocketManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,7 +49,6 @@ class PoliceMainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
 
-        // Custom BottomNavigationView logic
         binding.navView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navigation_home_police, R.id.navigation_caseslist_police -> {
@@ -61,6 +62,9 @@ class PoliceMainActivity : AppCompatActivity() {
                 else -> false
             }
         }
+
+        socketManager = SocketManager(this)
+        socketManager.initializeSocket()
     }
     private fun showLogoutDialog() {
         val dialog = CustomDialogLogoutFragment()
@@ -71,9 +75,15 @@ class PoliceMainActivity : AppCompatActivity() {
             finish()
         }
         dialog.onNoClick = {
-            // Optional: Tambah log atau Toast jika dibatalkan
             Log.d("PoliceMainActivity", "Logout dibatalkan oleh user.")
         }
         dialog.show(supportFragmentManager, "LogoutDialog")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (::socketManager.isInitialized) {
+            socketManager.disconnect()
+        }
     }
 }

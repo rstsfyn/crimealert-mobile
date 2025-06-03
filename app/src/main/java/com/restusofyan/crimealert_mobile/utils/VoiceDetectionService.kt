@@ -223,11 +223,11 @@ class VoiceDetectionService : Service() {
         val contentText = if (isLocationUnavailable) {
             "Scream detected! Location unavailable"
         } else {
-            "Ada kejahatan disini! Location: $latitude, $longitude, ayo bantu saudaramu!"
+            "Kamu melaporkan di lokasi ini $latitude, $longitude, semoga bantuan cepat datang"
         }
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("🚨 Emergency Alert!")
+            .setContentTitle("Berhasil Melaporkan Insiden!")
             .setContentText(contentText)
             .setSmallIcon(R.drawable.ic_alertreport)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

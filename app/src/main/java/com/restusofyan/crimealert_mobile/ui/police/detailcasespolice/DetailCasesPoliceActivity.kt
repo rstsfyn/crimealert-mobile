@@ -90,7 +90,7 @@ class DetailCasesPoliceActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun setupDetailCasesData() {
         binding.tvTitle.text = intent.getStringExtra("report_title")
         binding.tvDescription.text = intent.getStringExtra("report_description")
-        binding.tvDate.text = intent.getStringExtra("report_date")
+        binding.tvDate.text = intent.getStringExtra("report_date")?.substring(0, 10) ?: "--/--/----"
         binding.tvNewsTimestamp.text = intent.getStringExtra("report_timestamp")?.let { raw ->
             val tIndex = raw.indexOf('T')
             if (tIndex != -1 && raw.length >= tIndex + 6) raw.substring(tIndex + 1, tIndex + 6) else "--:--"
@@ -101,7 +101,6 @@ class DetailCasesPoliceActivity : AppCompatActivity(), OnMapReadyCallback {
         currentStatus = intent.getStringExtra("report_status") ?: "belum_ditangani"
 
         var imageUrl = intent.getStringExtra("report_image_url")
-        imageUrl = imageUrl?.replace("localhost", "10.0.2.2")
         if (!imageUrl.isNullOrEmpty()) {
             Glide.with(this)
                 .load(imageUrl)
@@ -147,7 +146,6 @@ class DetailCasesPoliceActivity : AppCompatActivity(), OnMapReadyCallback {
                 updateCaseStatus(newStatus)
             }
             .setNegativeButton("Batal") { _, _ ->
-                // Reset spinner to current status
                 val statusOptions = listOf("belum_ditangani", "sedang_ditangani", "sudah_ditangani")
                 val currentIndex = statusOptions.indexOf(currentStatus)
                 if (currentIndex != -1) {
@@ -160,7 +158,6 @@ class DetailCasesPoliceActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun updateCaseStatus(newStatus: String) {
         lifecycleScope.launch {
             try {
-                // Get token from SharedPreferences or wherever it's stored
                 val token = getSharedPreferences("user_session", MODE_PRIVATE)
                     .getString("token", "") ?: ""
 
