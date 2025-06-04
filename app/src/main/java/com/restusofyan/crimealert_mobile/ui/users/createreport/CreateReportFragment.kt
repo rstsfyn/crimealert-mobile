@@ -261,16 +261,6 @@ class CreateReportFragment : Fragment() {
     }
 
 
-
-
-    private val requestLocationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-        if (isGranted) {
-            getCurrentLocation()
-        } else {
-            Log.d("CreateReportFragment", "Location permission denied")
-        }
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         selectedImageUri?.let {

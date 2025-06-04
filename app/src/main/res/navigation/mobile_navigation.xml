@@ -32,4 +32,10 @@
         android:id="@+id/reportHistoryFragment"
         android:name="com.restusofyan.crimealert_mobile.ui.users.reporthistory.ReportHistoryFragment"
         android:label="Create Report" />
+
+    <fragment
+        android:id="@+id/notificationUser"
+        android:name="com.restusofyan.crimealert_mobile.ui.alluserpage.notifications.NotificationFragment"
+        android:label="Notifications" />
+
 </navigation>

@@ -32,4 +32,9 @@
         android:name="com.restusofyan.crimealert_mobile.ui.police.incomingcases.IncomingCasesFragment"
         android:label="Incoming Cases"/>
 
+    <fragment
+        android:id="@+id/notificationPolice"
+        android:name="com.restusofyan.crimealert_mobile.ui.alluserpage.notifications.NotificationFragment"
+        android:label="Notifications" />
+
 </navigation>

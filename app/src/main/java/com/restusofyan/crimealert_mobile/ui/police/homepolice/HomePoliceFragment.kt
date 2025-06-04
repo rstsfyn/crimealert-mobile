@@ -119,6 +119,10 @@ class HomePoliceFragment : Fragment() {
 
 
     private fun setupButton() {
+        binding.icNotification.setOnClickListener{
+            findNavController().navigate(R.id.notificationPolice)
+        }
+
         binding.incomingcases.setOnClickListener {
             Log.d("HomeFragment", "Create Incoming cases")
             findNavController().navigate(R.id.navigation_incoming_cases)

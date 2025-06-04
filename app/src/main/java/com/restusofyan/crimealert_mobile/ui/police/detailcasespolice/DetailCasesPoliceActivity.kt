@@ -95,8 +95,7 @@ class DetailCasesPoliceActivity : AppCompatActivity(), OnMapReadyCallback {
             val tIndex = raw.indexOf('T')
             if (tIndex != -1 && raw.length >= tIndex + 6) raw.substring(tIndex + 1, tIndex + 6) else "--:--"
         } ?: "--:--"
-
-        // Get report ID and current status
+        
         reportId = intent.getIntExtra("report_id", 0)
         currentStatus = intent.getStringExtra("report_status") ?: "belum_ditangani"
 

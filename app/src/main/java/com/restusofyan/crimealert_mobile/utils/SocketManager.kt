@@ -12,6 +12,9 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import com.restusofyan.crimealert_mobile.data.notification.NotificationItem
+import com.restusofyan.crimealert_mobile.data.notification.NotificationType
+import com.restusofyan.crimealert_mobile.data.repository.NotificationRepository
 import io.socket.client.IO
 import io.socket.client.Socket
 import io.socket.emitter.Emitter
@@ -21,6 +24,8 @@ import com.restusofyan.crimealert_mobile.ui.alluserpage.detailinsidens.DetailIns
 import com.restusofyan.crimealert_mobile.ui.police.detailcasespolice.DetailCasesPoliceActivity
 
 class SocketManager(private val context: Context) {
+
+    private lateinit var notificationRepository: NotificationRepository
 
     companion object {
         private const val TAG = "SocketManager"
@@ -34,6 +39,8 @@ class SocketManager(private val context: Context) {
 
     fun initializeSocket() {
         createNotificationChannel()
+
+        notificationRepository = NotificationRepository(context)
 
         try {
             val opts = IO.Options()
@@ -62,7 +69,18 @@ class SocketManager(private val context: Context) {
                 Log.d(TAG, "New Insiden received: $data")
                 val jsonData = JSONObject(data)
 
-                Log.d(TAG, "New Insiden received: $data")
+                // Create notification item and save to repository
+                val notificationItem = NotificationItem(
+                    id = jsonData.optString("id_insiden", System.currentTimeMillis().toString()),
+                    type = NotificationType.INCIDENT,
+                    title = jsonData.optString("title", "Ada insiden baru"),
+                    description = jsonData.optString("description", ""),
+                    timestamp = jsonData.optString("created_at", ""),
+                    latitude = jsonData.optDouble("latitude", 0.0),
+                    longitude = jsonData.optDouble("longitude", 0.0)
+                )
+
+                notificationRepository.saveNotification(notificationItem)
 
                 val intent = Intent(context, DetailInsidensActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -75,10 +93,6 @@ class SocketManager(private val context: Context) {
                     putExtra("incident_date", jsonData.optString("created_at", ""))
                     putExtra("incident_description", jsonData.optString("description", ""))
                 }
-
-                Log.d(TAG, "Intent created for DetailInsidensActivity")
-                Log.d(TAG, "Intent extras: ${intent.extras}")
-                Log.d(TAG, "Target activity: ${intent.component}")
 
                 showNotificationWithIntent(
                     "New Incident",
@@ -109,6 +123,20 @@ class SocketManager(private val context: Context) {
                 val jsonData = JSONObject(data)
                 val userRole = getUserRole()
 
+                val notificationItem = NotificationItem(
+                    id = jsonData.optString("id", System.currentTimeMillis().toString()),
+                    type = NotificationType.REPORT,
+                    title = jsonData.optString("title", "New Report"),
+                    description = jsonData.optString("description", ""),
+                    timestamp = jsonData.optString("created_at", ""),
+                    latitude = jsonData.optDouble("latitude", 0.0),
+                    longitude = jsonData.optDouble("longitude", 0.0),
+                    imageUrl = jsonData.optString("picture", null),
+                    statusKasus = jsonData.optString("status_kasus", null)
+                )
+
+                notificationRepository.saveNotification(notificationItem)
+
                 val intent = if (userRole == "polisi") {
                     Intent(context, DetailCasesPoliceActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -121,34 +149,38 @@ class SocketManager(private val context: Context) {
                         putExtra("report_longitude", jsonData.optDouble("longitude", 0.0))
                         putExtra("status_kasus", jsonData.optString("status_kasus", ""))
                         putExtra("report_image_url", jsonData.optString("picture", ""))
+                        putExtra("report_id", jsonData.optString("id", ""))
                     }
                 } else {
                     Intent(context, DetailCasesActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-
                         putExtra("news_title", jsonData.optString("title", "New Report"))
                         putExtra("news_description", jsonData.optString("description", ""))
-                        putExtra("news_date", jsonData.optString("date", ""))
+                        putExtra("news_date", jsonData.optString("created_at", ""))
                         putExtra("news_timestamp", jsonData.optString("created_at", ""))
                         putExtra("news_latitude", jsonData.optDouble("latitude", 0.0))
                         putExtra("news_longitude", jsonData.optDouble("longitude", 0.0))
-                        putExtra("news_image_url", jsonData.optString("picture", ""))
+                        putExtra("status_kasus", jsonData.optString("status_kasus", ""))
+                        putExtra("news_image", jsonData.optString("picture", ""))
+                        putExtra("report_id", jsonData.optString("id", ""))
                     }
                 }
 
                 showNotificationWithIntent(
                     "New Report",
-                    jsonData.optString("title", "Ada laporan baru"),
+                    jsonData.optString("title", "New Report"),
                     intent,
                     NOTIFICATION_REQUEST_CODE_REPORT
                 )
 
             } catch (e: Exception) {
                 Log.e(TAG, "Error parsing report data: ${e.message}")
+                e.printStackTrace()
                 showNotification("New Report", args[0].toString())
             }
         }
     }
+
 
 
     private fun showNotificationWithIntent(title: String, message: String, intent: Intent, requestCode: Int) {
@@ -164,7 +196,6 @@ class SocketManager(private val context: Context) {
         }
 
         try {
-            // Test if the target activity exists
             val packageManager = context.packageManager
             val resolveInfo = packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
             if (resolveInfo == null) {

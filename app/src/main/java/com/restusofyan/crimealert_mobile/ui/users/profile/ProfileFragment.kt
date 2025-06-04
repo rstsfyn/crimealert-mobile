@@ -50,7 +50,6 @@ class ProfileFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Update switch state when fragment resumes
         updateSwitchState()
     }
 

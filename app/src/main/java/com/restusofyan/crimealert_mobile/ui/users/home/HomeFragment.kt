@@ -152,6 +152,10 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupButton() {
+        binding.icNotification.setOnClickListener{
+            findNavController().navigate(R.id.notificationUser)
+        }
+
         binding.createreport.setOnClickListener {
             Log.d("HomeFragment", "Create Report clicked!")
             findNavController().navigate(R.id.createReportFragment)
