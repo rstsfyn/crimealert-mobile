@@ -78,14 +78,40 @@ android:layout_height="match_parent">
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Jam Kejadian"
-        android:layout_marginTop="8dp"/>
+        android:layout_marginTop="2dp"/>
 
     <TextView
         android:id="@+id/tvDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Tanggal kejadian"
-        android:layout_marginTop="8dp"/>
+        android:layout_marginTop="2dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/iv_reporter_avatar"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/avatar_background"
+            android:contentDescription="Avatar Pelapor"
+            android:scaleType="centerCrop"
+            android:src="@drawable/profilephoto" />
+
+        <TextView
+            android:id="@+id/tv_reporter_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nama Pelapor"
+            android:textSize="12sp"
+            android:textColor="@android:color/black" />
+    </LinearLayout>
 
     <Button
         android:id="@+id/btnValidateIncident"

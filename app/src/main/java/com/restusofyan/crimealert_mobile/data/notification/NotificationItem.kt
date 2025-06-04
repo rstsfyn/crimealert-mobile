@@ -10,7 +10,9 @@ data class NotificationItem(
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     val imageUrl: String? = null,
-    val statusKasus: String? = null
+    val statusKasus: String? = null,
+    val reporterName: String? = null,
+    val reporterAvatar: String? = null
 )
 
 enum class NotificationType {

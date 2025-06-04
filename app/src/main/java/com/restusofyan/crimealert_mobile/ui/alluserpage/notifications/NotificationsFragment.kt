@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.restusofyan.crimealert_mobile.R
 import com.restusofyan.crimealert_mobile.data.notification.NotificationItem
 import com.restusofyan.crimealert_mobile.data.notification.NotificationType
 import com.restusofyan.crimealert_mobile.data.repository.NotificationRepository
@@ -116,6 +117,8 @@ class NotificationFragment : Fragment() {
                     putExtra("incident_time", notification.timestamp)
                     putExtra("incident_date", notification.timestamp)
                     putExtra("incident_description", notification.description)
+                    putExtra("incident_reportername", notification.reporterName)
+                    putExtra("incident_reporteravatar", notification.reporterAvatar)
                 }
             }
 
@@ -132,6 +135,8 @@ class NotificationFragment : Fragment() {
                         putExtra("report_longitude", notification.longitude)
                         putExtra("status_kasus", notification.statusKasus)
                         putExtra("report_image_url", notification.imageUrl)
+                        putExtra("name_reporter", notification.reporterName)
+                        putExtra("avatar_reporter", notification.reporterAvatar)
                     }
                 } else {
                     Intent(requireContext(), DetailCasesActivity::class.java).apply {
@@ -142,6 +147,8 @@ class NotificationFragment : Fragment() {
                         putExtra("news_latitude", notification.latitude)
                         putExtra("news_longitude", notification.longitude)
                         putExtra("news_image_url", notification.imageUrl)
+                        putExtra("name_reporter", notification.reporterName)
+                        putExtra("avatar_reporter", notification.reporterAvatar)
                     }
                 }
             }
@@ -179,6 +186,6 @@ class NotificationFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null
+        (activity as? androidx.appcompat.app.AppCompatActivity)?.findViewById<View>(R.id.nav_view)?.visibility = View.VISIBLE
     }
 }

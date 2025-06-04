@@ -17,7 +17,7 @@
         <ImageView
             android:id="@+id/iv_news_image"
             android:layout_width="118dp"
-            android:layout_height="148dp"
+            android:layout_height="152dp"
             android:scaleType="centerCrop"
             android:src="@drawable/profilephoto" />
 
@@ -34,6 +34,8 @@
                 android:text="Kitith Di Jalan Magelang"
                 android:textColor="@android:color/black"
                 android:textSize="16sp"
+                android:maxLines="1"
+                android:ellipsize="end"
                 android:textStyle="bold" />
 
             <TextView
@@ -42,7 +44,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:ellipsize="end"
-                android:maxLines="3"
+                android:maxLines="2"
                 android:text="Ada segerombolan remaja membawa sajam di area jalan magelang, dan selain itu juga meresahkan warga"
                 android:textColor="@android:color/darker_gray"
                 android:textSize="14sp" />
@@ -51,8 +53,8 @@
                 android:id="@+id/tv_news_timestamp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="23:59"
+                android:layout_marginTop="3dp"
+                android:text="Jam kejadian"
                 android:textColor="@android:color/black"
                 android:textSize="12sp" />
 
@@ -60,7 +62,7 @@
                 android:id="@+id/tv_news_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Kamis, 13 Maret 2025"
+                android:text="Hari Kejadian"
                 android:textColor="@android:color/black"
                 android:textSize="12sp" />
 
@@ -68,11 +70,37 @@
                 android:id="@+id/tv_cases_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="5dp"
                 android:text="Sudah Ditangani"
                 android:textColor="#00C853"
                 android:background="@android:color/holo_green_dark"
                 android:textSize="14sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/iv_reporter_avatar"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/avatar_background"
+                    android:contentDescription="Avatar Pelapor"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/profilephoto" />
+
+                <TextView
+                    android:id="@+id/tv_reporter_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nama Pelapor"
+                    android:textSize="12sp"
+                    android:textColor="@android:color/black" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

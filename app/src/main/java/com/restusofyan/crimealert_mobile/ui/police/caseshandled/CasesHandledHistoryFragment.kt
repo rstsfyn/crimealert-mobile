@@ -70,6 +70,8 @@ class CasesHandledHistoryFragment : Fragment() {
                 putExtra("report_status", selectedNews.statusKasus)
                 putExtra("report_latitude", selectedNews.map?.latitude)
                 putExtra("report_longitude", selectedNews.map?.longitude)
+                putExtra("avatar_reporter", selectedNews.user?.avatar)
+                putExtra("name_reporter", selectedNews.user?.name)
             }
             startActivity(intent)
         }

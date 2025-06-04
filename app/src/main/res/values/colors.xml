@@ -32,5 +32,14 @@
     <color name="blue">#2196F3</color>
     <color name="orange">#FF9800</color>
 
+    <color name="txt_belumditangani">#780115</color>
+    <color name="bg_belumditangani">#FF9FA0</color>
+
+    <color name="txt_sedangditangani">#DFD400</color>
+    <color name="bg_sedangditangani">#F4FFB0</color>
+
+    <color name="txt_sudahditangani">#006A2C</color>
+    <color name="bg_sudahditangani">#38FF98</color>
+
 
 </resources>

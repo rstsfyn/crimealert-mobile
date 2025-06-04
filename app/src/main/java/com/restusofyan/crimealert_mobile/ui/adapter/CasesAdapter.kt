@@ -17,12 +17,14 @@ class CasesAdapter(
 ) : RecyclerView.Adapter<CasesAdapter.NewsViewHolder>() {
 
     class NewsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val newsImage: ImageView = itemView.findViewById(R.id.iv_news_image)
-        val newsTitle: TextView = itemView.findViewById(R.id.tv_news_title)
-        val newsDescription: TextView = itemView.findViewById(R.id.tv_news_description)
-        val newsTimestamp: TextView = itemView.findViewById(R.id.tv_news_timestamp)
-        val newsDate: TextView = itemView.findViewById(R.id.tv_news_date)
-        val newsStatus: TextView = itemView.findViewById(R.id.tv_cases_status)
+        val casesImage: ImageView = itemView.findViewById(R.id.iv_news_image)
+        val casesTitle: TextView = itemView.findViewById(R.id.tv_news_title)
+        val casesDescription: TextView = itemView.findViewById(R.id.tv_news_description)
+        val casesTimestamp: TextView = itemView.findViewById(R.id.tv_news_timestamp)
+        val casesDate: TextView = itemView.findViewById(R.id.tv_news_date)
+        val casesStatus: TextView = itemView.findViewById(R.id.tv_cases_status)
+        val casesReporterAvatar: ImageView = itemView.findViewById(R.id.iv_reporter_avatar)
+        val casesReporterName: TextView = itemView.findViewById(R.id.tv_reporter_name)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NewsViewHolder {
@@ -34,8 +36,8 @@ class CasesAdapter(
     override fun onBindViewHolder(holder: NewsViewHolder, position: Int) {
         val currentItem = casesList[position]
 
-        holder.newsTitle.text = currentItem.title ?: "No Title"
-        holder.newsDescription.text = currentItem.description ?: "No Description"
+        holder.casesTitle.text = currentItem.title ?: "No Title"
+        holder.casesDescription.text = currentItem.description ?: "No Description"
         val time = currentItem.createdAt?.let {
             val tIndex = it.indexOf('T')
             if (tIndex != -1 && it.length >= tIndex + 6) {
@@ -44,15 +46,50 @@ class CasesAdapter(
                 "--:--"
             }
         } ?: "--:--"
-        holder.newsTimestamp.text = time
-        holder.newsDate.text = currentItem.createdAt?.substringBefore("T") ?: "----/--/--"
-        holder.newsStatus.text = currentItem.statusKasus ?: "Status Kasus"
+        holder.casesTimestamp.text = time
+
+        holder.casesDate.text = currentItem.createdAt?.substringBefore("T") ?: "----/--/--"
+
+        val rawStatus = currentItem.statusKasus ?: "STATUS_TIDAK_DISET"
+        val formattedStatus = rawStatus.lowercase()
+            .split("_")
+            .joinToString(" ") { it.replaceFirstChar { char -> char.uppercaseChar() } }
+
+        holder.casesStatus.text = formattedStatus
+
+        when (rawStatus.uppercase()) {
+            "BELUM_DITANGANI" -> {
+                holder.casesStatus.setTextColor(holder.itemView.context.getColor(R.color.txt_belumditangani))
+                holder.casesStatus.setBackgroundColor(holder.itemView.context.getColor(R.color.bg_belumditangani))
+            }
+            "SEDANG_DITANGANI" -> {
+                holder.casesStatus.setTextColor(holder.itemView.context.getColor(R.color.txt_sedangditangani))
+                holder.casesStatus.setBackgroundColor(holder.itemView.context.getColor(R.color.bg_sedangditangani))
+            }
+            "SUDAH_DITANGANI" -> {
+                holder.casesStatus.setTextColor(holder.itemView.context.getColor(R.color.txt_sudahditangani))
+                holder.casesStatus.setBackgroundColor(holder.itemView.context.getColor(R.color.bg_sudahditangani))
+            }
+            else -> {
+                holder.casesStatus.setTextColor(holder.itemView.context.getColor(android.R.color.black))
+                holder.casesStatus.setBackgroundColor(holder.itemView.context.getColor(android.R.color.darker_gray))
+            }
+        }
+
 
         Glide.with(holder.itemView.context)
-            .load(currentItem.picture?.replace("localhost", "10.0.2.2"))
+            .load(currentItem.picture)
             .centerCrop()
             .placeholder(R.drawable.profilephoto)
-            .into(holder.newsImage)
+            .into(holder.casesImage)
+
+        Glide.with(holder.itemView.context)
+            .load(currentItem.user?.avatar)
+            .centerCrop()
+            .placeholder(R.drawable.profilephoto)
+            .into(holder.casesReporterAvatar)
+
+        holder.casesReporterName.text = currentItem.user?.name ?: "Name"
 
         holder.itemView.setOnClickListener {
             onItemClick(currentItem)

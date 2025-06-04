@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
+import com.bumptech.glide.Glide
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -86,6 +87,19 @@ class DetailInsidensActivity : AppCompatActivity(), OnMapReadyCallback {
             if (tIndex != -1 && raw.length >= tIndex + 6) raw.substring(tIndex + 1, tIndex + 6) else "--:--"
         } ?: "--:--"
         binding.tvDate.text = intent.getStringExtra("incident_date")?.substring(0, 10) ?: "--/--/----"
+
+        var avatarReporter = intent.getStringExtra("incident_reporteravatar")
+        if (!avatarReporter.isNullOrEmpty()) {
+            Glide.with(this)
+                .load(avatarReporter)
+                .placeholder(R.drawable.bg_photoreport)
+                .error(R.drawable.bg_photoreport)
+                .into(binding.ivReporterAvatar)
+        } else {
+            binding.ivReporterAvatar.setImageResource(R.drawable.bg_photoreport)
+        }
+
+        binding.tvReporterName.text = intent.getStringExtra("incident_reportername")
 
     }
 

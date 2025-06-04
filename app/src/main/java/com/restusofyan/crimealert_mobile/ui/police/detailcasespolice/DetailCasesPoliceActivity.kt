@@ -109,6 +109,19 @@ class DetailCasesPoliceActivity : AppCompatActivity(), OnMapReadyCallback {
         } else {
             binding.ivCaseImage.setImageResource(R.drawable.bg_photoreport)
         }
+
+        var avatarReporter = intent.getStringExtra("avatar_reporter")
+        if (!avatarReporter.isNullOrEmpty()) {
+            Glide.with(this)
+                .load(avatarReporter)
+                .placeholder(R.drawable.bg_photoreport)
+                .error(R.drawable.bg_photoreport)
+                .into(binding.ivReporterAvatar)
+        } else {
+            binding.ivReporterAvatar.setImageResource(R.drawable.bg_photoreport)
+        }
+
+        binding.tvReporterName.text = intent.getStringExtra("name_reporter")
     }
 
     private fun setupStatusSpinner() {
@@ -119,7 +132,6 @@ class DetailCasesPoliceActivity : AppCompatActivity(), OnMapReadyCallback {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerStatus.adapter = adapter
 
-        // Set current status as selected
         val currentIndex = statusOptions.indexOf(currentStatus)
         if (currentIndex != -1) {
             binding.spinnerStatus.setSelection(currentIndex)
@@ -177,7 +189,6 @@ class DetailCasesPoliceActivity : AppCompatActivity(), OnMapReadyCallback {
                         "Gagal memperbarui status: ${response.body()?.message}",
                         Toast.LENGTH_SHORT).show()
 
-                    // Reset spinner to current status
                     val statusOptions = listOf("belum_ditangani", "sedang_ditangani", "sudah_ditangani")
                     val currentIndex = statusOptions.indexOf(currentStatus)
                     if (currentIndex != -1) {
@@ -188,7 +199,6 @@ class DetailCasesPoliceActivity : AppCompatActivity(), OnMapReadyCallback {
                 Toast.makeText(this@DetailCasesPoliceActivity,
                     "Error: ${e.message}", Toast.LENGTH_SHORT).show()
 
-                // Reset spinner to current status
                 val statusOptions = listOf("belum_ditangani", "sedang_ditangani", "sudah_ditangani")
                 val currentIndex = statusOptions.indexOf(currentStatus)
                 if (currentIndex != -1) {

@@ -69,7 +69,6 @@ class SocketManager(private val context: Context) {
                 Log.d(TAG, "New Insiden received: $data")
                 val jsonData = JSONObject(data)
 
-                // Create notification item and save to repository
                 val notificationItem = NotificationItem(
                     id = jsonData.optString("id_insiden", System.currentTimeMillis().toString()),
                     type = NotificationType.INCIDENT,
@@ -77,7 +76,9 @@ class SocketManager(private val context: Context) {
                     description = jsonData.optString("description", ""),
                     timestamp = jsonData.optString("created_at", ""),
                     latitude = jsonData.optDouble("latitude", 0.0),
-                    longitude = jsonData.optDouble("longitude", 0.0)
+                    longitude = jsonData.optDouble("longitude", 0.0),
+                    reporterName = jsonData.optString("name", "Unknown"),
+                    reporterAvatar = jsonData.optString("avatar", null)
                 )
 
                 notificationRepository.saveNotification(notificationItem)
@@ -92,6 +93,8 @@ class SocketManager(private val context: Context) {
                     putExtra("incident_time", jsonData.optString("created_at", ""))
                     putExtra("incident_date", jsonData.optString("created_at", ""))
                     putExtra("incident_description", jsonData.optString("description", ""))
+                    putExtra("incident_reportername", jsonData.optString("name", ""))
+                    putExtra("incident_reporteravatar", jsonData.optString("avatar", ""))
                 }
 
                 showNotificationWithIntent(
@@ -132,7 +135,9 @@ class SocketManager(private val context: Context) {
                     latitude = jsonData.optDouble("latitude", 0.0),
                     longitude = jsonData.optDouble("longitude", 0.0),
                     imageUrl = jsonData.optString("picture", null),
-                    statusKasus = jsonData.optString("status_kasus", null)
+                    statusKasus = jsonData.optString("status_kasus", null),
+                    reporterName = jsonData.optString("name", "Unknown"),
+                    reporterAvatar = jsonData.optString("avatar", null)
                 )
 
                 notificationRepository.saveNotification(notificationItem)
@@ -150,6 +155,8 @@ class SocketManager(private val context: Context) {
                         putExtra("status_kasus", jsonData.optString("status_kasus", ""))
                         putExtra("report_image_url", jsonData.optString("picture", ""))
                         putExtra("report_id", jsonData.optString("id", ""))
+                        putExtra("avatar_reporter", jsonData.optString("avatar", ""))
+                        putExtra("name_reporter", jsonData.optString("name", ""))
                     }
                 } else {
                     Intent(context, DetailCasesActivity::class.java).apply {
@@ -163,6 +170,8 @@ class SocketManager(private val context: Context) {
                         putExtra("status_kasus", jsonData.optString("status_kasus", ""))
                         putExtra("news_image", jsonData.optString("picture", ""))
                         putExtra("report_id", jsonData.optString("id", ""))
+//                        putExtra("incident_reportername", jsonData.optString("name", ""))
+//                        putExtra("incident_reporteravatar", jsonData.optString("avatar", ""))
                     }
                 }
 
