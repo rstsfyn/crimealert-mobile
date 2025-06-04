@@ -73,7 +73,7 @@ class SocketManager(private val context: Context) {
                 val notificationItem = NotificationItem(
                     id = jsonData.optString("id_insiden", System.currentTimeMillis().toString()),
                     type = NotificationType.INCIDENT,
-                    title = jsonData.optString("title", "Ada insiden baru"),
+                    title = jsonData.optString("title", "Disini ada orang yang membutuhkan bantuan, ada deteksi kejahatan disini, ayo validasi!!"),
                     description = jsonData.optString("description", ""),
                     timestamp = jsonData.optString("created_at", ""),
                     latitude = jsonData.optDouble("latitude", 0.0),
@@ -86,7 +86,7 @@ class SocketManager(private val context: Context) {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
 
                     putExtra("incident_id", jsonData.optString("id_insiden", ""))
-                    putExtra("incident_title", jsonData.optString("title", "Ada insiden baru"))
+                    putExtra("incident_title", jsonData.optString("title", "Disini ada orang yang membutuhkan bantuan, ada deteksi kejahatan disini, ayo validasi!!"))
                     putExtra("incident_latitude", jsonData.optDouble("latitude", 0.0))
                     putExtra("incident_longitude", jsonData.optDouble("longitude", 0.0))
                     putExtra("incident_time", jsonData.optString("created_at", ""))
@@ -96,7 +96,7 @@ class SocketManager(private val context: Context) {
 
                 showNotificationWithIntent(
                     "New Incident",
-                    jsonData.optString("title", "Ada insiden baru"),
+                    jsonData.optString("title", "Disini ada orang yang membutuhkan bantuan, ada deteksi kejahatan disini, ayo validasi!!"),
                     intent,
                     NOTIFICATION_REQUEST_CODE_INCIDENT
                 )

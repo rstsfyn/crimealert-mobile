@@ -93,8 +93,9 @@
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
             android:layout_margin="16dp"
-            android:src="@drawable/ic_clear_all"
-            app:backgroundTint="@color/red" />
+            android:src="@drawable/ic_delete"
+            app:backgroundTint="@color/text_secondary"
+            app:tint="@android:color/white"/>
 
     </RelativeLayout>
 

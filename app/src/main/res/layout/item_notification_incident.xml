@@ -1,81 +1,65 @@
-<?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/cardNotification"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginBottom="1dp"
+    app:cardCornerRadius="2dp"
+    app:cardElevation="4dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:padding="12dp">
 
-        <RelativeLayout
+        <TextView
+            android:id="@+id/tvNotificationCategory"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-
-            <ImageView
-                android:id="@+id/iconNotification"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_centerInParent="true"
-                android:background="@drawable/circle_background_red"
-                android:padding="8dp"
-                android:src="@drawable/ic_incident" />
-
-            <View
-                android:id="@+id/unreadIndicator"
-                android:layout_width="12dp"
-                android:layout_height="12dp"
-                android:layout_alignTop="@id/iconNotification"
-                android:layout_alignEnd="@id/iconNotification"
-                android:background="@drawable/circle_background_orange"
-                android:visibility="gone" />
-
-        </RelativeLayout>
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_category"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="2dp"
+            android:text="Insiden"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            android:textStyle="bold" />
 
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp">
 
-            <TextView
-                android:id="@+id/tvNotificationTitle"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="New Incident"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tvNotificationDescription"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:ellipsize="end"
-                android:maxLines="2"
-                android:text="Incident description"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp" />
+                <TextView
+                    android:id="@+id/tvNotificationTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Disini ada orang yang membutuhkan bantuan, ada deteksi kejahatan disini, ayo validasi!!"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:maxLines="2"
+                    android:ellipsize="end" />
 
-            <TextView
-                android:id="@+id/tvNotificationTimestamp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="2 hours ago"
-                android:textColor="@color/text_tertiary"
-                android:textSize="12sp" />
-
+                <TextView
+                    android:id="@+id/tvNotificationTimestamp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Waktu Kejadian"
+                    android:textColor="@color/text_tertiary"
+                    android:textSize="12sp" />
+            </LinearLayout>
         </LinearLayout>
-
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>

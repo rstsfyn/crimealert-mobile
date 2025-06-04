@@ -1,7 +1,6 @@
 package com.restusofyan.crimealert_mobile.ui.adapter
 
 import android.content.Context
-import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -60,32 +59,13 @@ class NotificationAdapter(
 
     inner class NotificationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val cardView: CardView = itemView.findViewById(R.id.cardNotification)
-        private val iconNotification: ImageView = itemView.findViewById(R.id.iconNotification)
         private val tvTitle: TextView = itemView.findViewById(R.id.tvNotificationTitle)
-        private val tvDescription: TextView = itemView.findViewById(R.id.tvNotificationDescription)
         private val tvTimestamp: TextView = itemView.findViewById(R.id.tvNotificationTimestamp)
         private val ivNotificationImage: ImageView? = itemView.findViewById(R.id.ivNotificationImage)
-        private val tvStatus: TextView? = itemView.findViewById(R.id.tvNotificationStatus)
-        private val unreadIndicator: View = itemView.findViewById(R.id.unreadIndicator)
 
         fun bind(notification: NotificationItem) {
-            tvTitle.text = notification.title
-            tvDescription.text = notification.description
-
             tvTimestamp.text = formatTimestamp(notification.timestamp)
 
-            when (notification.type) {
-                NotificationType.INCIDENT -> {
-                    iconNotification.setImageResource(R.drawable.ic_incident)
-                    iconNotification.setColorFilter(ContextCompat.getColor(context, R.color.red))
-                }
-                NotificationType.REPORT -> {
-                    iconNotification.setImageResource(R.drawable.ic_report)
-                    iconNotification.setColorFilter(ContextCompat.getColor(context, R.color.blue))
-                }
-            }
-
-            unreadIndicator.visibility = if (notification.isRead) View.GONE else View.VISIBLE
 
             if (notification.isRead) {
                 cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.white))
@@ -103,15 +83,6 @@ class NotificationAdapter(
                         .into(imageView)
                 } else {
                     imageView.visibility = View.GONE
-                }
-            }
-
-            tvStatus?.let { statusView ->
-                if (notification.type == NotificationType.REPORT && !notification.statusKasus.isNullOrEmpty()) {
-                    statusView.visibility = View.VISIBLE
-                    statusView.text = "Status: ${notification.statusKasus}"
-                } else {
-                    statusView.visibility = View.GONE
                 }
             }
 
