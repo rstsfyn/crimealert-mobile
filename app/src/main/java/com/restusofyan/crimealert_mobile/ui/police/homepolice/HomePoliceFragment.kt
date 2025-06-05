@@ -99,7 +99,7 @@ class HomePoliceFragment : Fragment() {
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            // binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+             binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
         viewModel.error.observe(viewLifecycleOwner) { errorMsg ->

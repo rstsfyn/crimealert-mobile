@@ -97,9 +97,7 @@ class HomeFragment : Fragment() {
     private fun displayUserInfo() {
         val sharedPref = requireActivity().getSharedPreferences("user_session", Context.MODE_PRIVATE)
         val userName = sharedPref.getString("name", "User")
-        var userAvatar = sharedPref.getString("avatar", null)
-
-        userAvatar = userAvatar?.replace("localhost", "10.0.2.2")
+        val userAvatar = sharedPref.getString("avatar", null)
 
         binding.tvName.text = userName ?: "User"
 
@@ -122,6 +120,8 @@ class HomeFragment : Fragment() {
                 putExtra("news_status", selectedNews.statusKasus)
                 putExtra("news_latitude", selectedNews.map?.latitude)
                 putExtra("news_longitude", selectedNews.map?.longitude)
+                putExtra("avatar_reporter", selectedNews.user?.avatar)
+                putExtra("name_reporter", selectedNews.user?.name)
             }
             startActivity(intent)
         }
@@ -141,7 +141,7 @@ class HomeFragment : Fragment() {
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-            // binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
         viewModel.error.observe(viewLifecycleOwner) { errorMsg ->

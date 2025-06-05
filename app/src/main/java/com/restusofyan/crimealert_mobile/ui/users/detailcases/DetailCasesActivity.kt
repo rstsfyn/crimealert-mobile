@@ -85,6 +85,19 @@ class DetailCasesActivity : AppCompatActivity(), OnMapReadyCallback {
         } else {
             binding.ivCaseImage.setImageResource(R.drawable.bg_photoreport)
         }
+
+        var avatarReporter = intent.getStringExtra("avatar_reporter")
+        if (!avatarReporter.isNullOrEmpty()) {
+            Glide.with(this)
+                .load(avatarReporter)
+                .placeholder(R.drawable.bg_photoreport)
+                .error(R.drawable.bg_photoreport)
+                .into(binding.ivReporterAvatar)
+        } else {
+            binding.ivReporterAvatar.setImageResource(R.drawable.bg_photoreport)
+        }
+
+        binding.tvReporterName.text = intent.getStringExtra("name_reporter")
     }
 
     override fun onMapReady(map: GoogleMap) {

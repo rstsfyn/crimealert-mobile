@@ -21,6 +21,8 @@ class NewsAdapter(
         val newsDescription: TextView = itemView.findViewById(R.id.tv_news_description)
         val newsTimestamp: TextView = itemView.findViewById(R.id.tv_news_timestamp)
         val newsDate: TextView = itemView.findViewById(R.id.tv_news_date)
+        val newsReporterAvatar: ImageView = itemView.findViewById(R.id.iv_reporter_avatar)
+        val newsReporterName: TextView = itemView.findViewById(R.id.tv_reporter_name)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NewsViewHolder {
@@ -46,10 +48,18 @@ class NewsAdapter(
         holder.newsDate.text = currentItem.createdAt?.substringBefore("T") ?: "----/--/--"
 
         Glide.with(holder.itemView.context)
-            .load(currentItem.picture?.replace("localhost", "10.0.2.2"))
+            .load(currentItem.picture)
             .centerCrop()
             .placeholder(R.drawable.profilephoto)
             .into(holder.newsImage)
+
+        Glide.with(holder.itemView.context)
+            .load(currentItem.user?.avatar)
+            .centerCrop()
+            .placeholder(R.drawable.profilephoto)
+            .into(holder.newsReporterAvatar)
+
+        holder.newsReporterName.text = currentItem.user?.name ?: "Name"
 
         holder.itemView.setOnClickListener {
             onItemClick(currentItem)

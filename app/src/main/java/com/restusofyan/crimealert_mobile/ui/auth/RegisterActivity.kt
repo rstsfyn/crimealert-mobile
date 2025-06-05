@@ -1,7 +1,13 @@
 package com.restusofyan.crimealert_mobile.ui.auth
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.TextPaint
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.Toast
@@ -23,6 +29,8 @@ class RegisterActivity : AppCompatActivity() {
 
     private val authViewModel: AuthViewModel by viewModels()
 
+    private lateinit var loginTextView: android.widget.TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
@@ -36,6 +44,10 @@ class RegisterActivity : AppCompatActivity() {
         val edConfirmPassword = findViewById<PasswordEditText>(R.id.ed_confirm_password)
         val btnRegister = findViewById<Button>(R.id.btnLogin)
         val backButton = findViewById<ImageButton>(R.id.backButton)
+
+        loginTextView = findViewById(R.id.klik_login)
+
+        setupKlikLogin()
 
         backButton.setOnClickListener {
             finish()
@@ -77,5 +89,28 @@ class RegisterActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun setupKlikLogin() {
+        val text = "Sudah punya akun?, klik sini!"
+        val spannable = SpannableString(text)
+        val start = text.indexOf("klik sini!")
+        val end = start + "klik sini!".length
+
+        val clickableSpan = object : ClickableSpan() {
+            override fun onClick(widget: android.view.View) {
+                startActivity(Intent(this@RegisterActivity, LoginActivity::class.java))
+            }
+
+            override fun updateDrawState(ds: TextPaint) {
+                super.updateDrawState(ds)
+                ds.color = Color.BLUE
+                ds.isUnderlineText = false
+            }
+        }
+
+        spannable.setSpan(clickableSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        loginTextView.text = spannable
+        loginTextView.movementMethod = LinkMovementMethod.getInstance()
     }
 }
