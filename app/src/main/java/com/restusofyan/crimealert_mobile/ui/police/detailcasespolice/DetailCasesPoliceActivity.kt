@@ -125,8 +125,8 @@ class DetailCasesPoliceActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun setupStatusSpinner() {
-        val statusOptions = listOf("belum_ditangani", "sedang_ditangani", "sudah_ditangani")
-        val statusDisplayNames = listOf("Belum Ditangani", "Sedang Ditangani", "Sudah Ditangani")
+        val statusOptions = listOf("tidak_dapat_ditangani", "belum_ditangani", "sedang_ditangani", "sudah_ditangani")
+        val statusDisplayNames = listOf("Tidak Dapat Ditangani", "Belum Ditangani", "Sedang Ditangani", "Sudah Ditangani")
 
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, statusDisplayNames)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)

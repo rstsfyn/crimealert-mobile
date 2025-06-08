@@ -77,19 +77,27 @@ class IncomingCasesFragment : Fragment() {
 
     private fun setupObservers() {
         viewModel.reports.observe(viewLifecycleOwner) { data ->
-            casesAdapter.updateData(data)
+            if (data.isEmpty()) {
+                binding.tvEmptyIncomingcases.visibility = View.VISIBLE
+                binding.rvIncomingcases.visibility = View.GONE
+            } else {
+                binding.tvEmptyIncomingcases.visibility = View.GONE
+                binding.rvIncomingcases.visibility = View.VISIBLE
+                casesAdapter.updateData(data)
+            }
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-             binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
         viewModel.error.observe(viewLifecycleOwner) { errorMsg ->
             errorMsg?.let {
-                Log.e("NewsFragment", it)
+                Log.e("IncomingCasesFragment", it)
             }
         }
     }
+
 
     private fun ambilTokenSession(): String? {
         val sharedPref = requireContext().getSharedPreferences("user_session", Context.MODE_PRIVATE)

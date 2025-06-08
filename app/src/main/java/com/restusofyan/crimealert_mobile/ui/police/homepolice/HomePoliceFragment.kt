@@ -53,16 +53,14 @@ class HomePoliceFragment : Fragment() {
     private fun displayUserInfo() {
         val sharedPref = requireActivity().getSharedPreferences("user_session", Context.MODE_PRIVATE)
         val userName = sharedPref.getString("name", "Ladhusing")
-        var userAvatar = sharedPref.getString("avatar", null)
-
-        userAvatar = userAvatar?.replace("localhost", "10.0.2.2")
+        val userAvatar = sharedPref.getString("avatar", null)
 
         binding.tvName.text = userName ?: "User"
 
         Glide.with(this)
             .load(userAvatar)
-            .placeholder(R.drawable.profilephoto)
-            .error(R.drawable.profilephoto)
+            .placeholder(R.drawable.ladushing)
+            .error(R.drawable.ladushing)
             .into(binding.ivAvatar)
     }
 

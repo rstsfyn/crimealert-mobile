@@ -36,9 +36,6 @@
         android:theme="@style/Theme.Crimealertmobile"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
-        <activity
-            android:name=".ui.alluserpage.notifications.NotificationActivity"
-            android:exported="false" />
         <!--
              TODO: Before you run your application, you need a Google Maps API key.
 
@@ -53,18 +50,10 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="YOUR_API_KEY" />
-
-        <activity
-            android:name=".ui.police.detailinsidenspolice.DetailInsidensPoliceActivity"
-            android:exported="false"
-            android:label="@string/title_activity_detail_insidens_police" />
         <activity
             android:name=".ui.alluserpage.validateinsidens.ValidateInsidensActivity"
             android:exported="false"
-            android:theme="@style/Theme.Crimealertmobile_Authpage" /> <!-- <activity -->
-        <!-- android:name=".ui.police.validateinsidenspolice.ValidateInsidensPoliceActivity" -->
-        <!-- android:exported="false" -->
-        <!-- android:label="@string/title_activity_validate_insidens_police" /> -->
+            android:theme="@style/Theme.Crimealertmobile_Authpage" />
         <activity
             android:name=".ui.alluserpage.detailinsidens.DetailInsidensActivity"
             android:exported="false"

@@ -12,6 +12,7 @@ import com.restusofyan.crimealert_mobile.R
 import com.restusofyan.crimealert_mobile.databinding.ActivityPoliceMainBinding
 import com.restusofyan.crimealert_mobile.ui.auth.LoginActivity
 import android.util.Log
+import androidx.activity.enableEdgeToEdge
 import com.restusofyan.crimealert_mobile.ui.customview.CustomDialogLogoutFragment
 import com.restusofyan.crimealert_mobile.utils.SocketManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,6 +26,8 @@ class PoliceMainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        supportActionBar?.hide()
+
         val sharedPref = getSharedPreferences("user_session", MODE_PRIVATE)
         val token = sharedPref.getString("token", null)
         val role = sharedPref.getString("role", null)
@@ -36,8 +39,6 @@ class PoliceMainActivity : AppCompatActivity() {
             finish()
             return
         }
-
-        supportActionBar?.hide()
 
         binding = ActivityPoliceMainBinding.inflate(layoutInflater)
         setContentView(binding.root)

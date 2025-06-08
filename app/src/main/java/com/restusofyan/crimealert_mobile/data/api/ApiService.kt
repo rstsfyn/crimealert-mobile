@@ -11,6 +11,8 @@ import com.restusofyan.crimealert_mobile.data.response.insidens.UploadInsidensRe
 import com.restusofyan.crimealert_mobile.data.response.login.LoginRequest
 import com.restusofyan.crimealert_mobile.data.response.login.LoginResponse
 import com.restusofyan.crimealert_mobile.data.response.profile.MyProfileResponse
+import com.restusofyan.crimealert_mobile.data.response.profile.UpdateAvatarRequest
+import com.restusofyan.crimealert_mobile.data.response.profile.UpdateAvatarResponse
 import com.restusofyan.crimealert_mobile.data.response.register.RegisterRequest
 import com.restusofyan.crimealert_mobile.data.response.register.RegisterResponse
 import okhttp3.MultipartBody
@@ -94,4 +96,10 @@ interface ApiService {
         @Part picture: MultipartBody.Part,
     ): Call<AddNewReportResponse>
 
+    @PUT("users/{id}/avatar")
+    suspend fun updateAvatar(
+        @Header("Authorization") token: String,
+        @Path("id") userId: Int,
+        @Body statusBody: UpdateAvatarRequest
+    ): Response<UpdateAvatarResponse>
 }

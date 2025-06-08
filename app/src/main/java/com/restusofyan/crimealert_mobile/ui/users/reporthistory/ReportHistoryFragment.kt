@@ -46,6 +46,9 @@ class ReportHistoryFragment : Fragment() {
         setupObservers()
         setupButton()
 
+        (activity as? AppCompatActivity)?.findViewById<View>(R.id.nav_view)?.visibility =
+            View.GONE
+
         val token = ambilTokenSession()
         if (token != null) {
             viewModel.fetchReports(token)
@@ -80,16 +83,23 @@ class ReportHistoryFragment : Fragment() {
 
     private fun setupObservers() {
         viewModel.reports.observe(viewLifecycleOwner) { data ->
-            casesAdapter.updateData(data)
+            if (data.isEmpty()) {
+                binding.rvReporthistory.visibility = View.GONE
+                binding.tvEmptyReportHistory.visibility = View.VISIBLE
+            } else {
+                binding.rvReporthistory.visibility = View.VISIBLE
+                binding.tvEmptyReportHistory.visibility = View.GONE
+                casesAdapter.updateData(data)
+            }
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-             binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
         viewModel.error.observe(viewLifecycleOwner) { errorMsg ->
             errorMsg?.let {
-                Log.e("NewsFragment", it)
+                Log.e("ReportHistoryFragment", it)
             }
         }
     }
@@ -107,6 +117,8 @@ class ReportHistoryFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null
+
+        (activity as? AppCompatActivity)?.findViewById<View>(R.id.nav_view)?.visibility =
+            View.VISIBLE
     }
 }

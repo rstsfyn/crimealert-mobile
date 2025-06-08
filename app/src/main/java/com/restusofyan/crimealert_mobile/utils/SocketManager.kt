@@ -170,8 +170,8 @@ class SocketManager(private val context: Context) {
                         putExtra("status_kasus", jsonData.optString("status_kasus", ""))
                         putExtra("news_image", jsonData.optString("picture", ""))
                         putExtra("report_id", jsonData.optString("id", ""))
-//                        putExtra("incident_reportername", jsonData.optString("name", ""))
-//                        putExtra("incident_reporteravatar", jsonData.optString("avatar", ""))
+                        putExtra("name_reporter", jsonData.optString("name", ""))
+                        putExtra("avatar_reporter", jsonData.optString("avatar", ""))
                     }
                 }
 

@@ -84,7 +84,14 @@ class CasesHandledHistoryFragment : Fragment() {
 
     private fun setupObservers() {
         viewModel.reports.observe(viewLifecycleOwner) { data ->
-            casesHandledAdapter.updateData(data)
+            if (data.isEmpty()) {
+                binding.tvEmptyCasesHandledHistory.visibility = View.VISIBLE
+                binding.rvCaseshandledhistory.visibility = View.GONE
+            } else {
+                binding.tvEmptyCasesHandledHistory.visibility = View.GONE
+                binding.rvCaseshandledhistory.visibility = View.VISIBLE
+                casesHandledAdapter.updateData(data)
+            }
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->

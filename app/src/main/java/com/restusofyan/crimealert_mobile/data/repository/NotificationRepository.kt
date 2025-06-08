@@ -16,7 +16,7 @@ class NotificationRepository(context: Context) {
         val notifications = getNotifications().toMutableList()
         notifications.add(0, notification) // Add to top
 
-        // Keep only last 50 notifications
+
         if (notifications.size > 50) {
             notifications.removeAt(notifications.size - 1)
         }

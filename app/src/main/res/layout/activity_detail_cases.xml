@@ -89,21 +89,21 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Deskripsi kasus akan tampil di sini."
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="3dp"/>
 
         <TextView
             android:id="@+id/tv_news_timestamp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Jam Kejadian"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="2dp"/>
 
         <TextView
             android:id="@+id/tvDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Tanggal kejadian"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="2dp"/>
 
         <LinearLayout
             android:layout_width="match_parent"

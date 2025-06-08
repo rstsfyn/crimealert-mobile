@@ -110,7 +110,7 @@ class CreateReportViewModel @Inject constructor(
                     if (response.isSuccessful && response.body()?.error == false) {
                         _uploadResult.value = UploadResult.Success("Story uploaded successfully")
                     } else {
-                        _uploadResult.value = UploadResult.Error("Failed to upload story")
+                        _uploadResult.value = UploadResult.Error("Failed to upload report")
                     }
                 }
 
