@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateReportViewModel @Inject constructor(
-    private val storyRepository: CrimeAlertRepository
+    private val crimeAlertRepository: CrimeAlertRepository
 ) : ViewModel() {
 
     private val _uploadResult = MutableLiveData<UploadResult>()
@@ -101,7 +101,7 @@ class CreateReportViewModel @Inject constructor(
             RequestBody.create("image/*".toMediaTypeOrNull(), file)
         )
 
-        storyRepository.createNewReport(token, titlePart, descriptionPart, latitudePart, longitudePart, filePart)
+        crimeAlertRepository.createNewReport(token, titlePart, descriptionPart, latitudePart, longitudePart, filePart)
             .enqueue(object : Callback<AddNewReportResponse> {
                 override fun onResponse(
                     call: Call<AddNewReportResponse>,

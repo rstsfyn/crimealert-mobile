@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.restusofyan.crimealert_mobile.R
 import com.restusofyan.crimealert_mobile.databinding.FragmentCaseslistPoliceBinding
@@ -42,6 +43,9 @@ class IncomingCasesFragment : Fragment() {
         setupRecyclerView()
         setupObservers()
         setupButton()
+
+        (activity as? AppCompatActivity)?.findViewById<View>(R.id.nav_view)?.visibility =
+            View.GONE
 
         val token = ambilTokenSession()
         if (token != null) {
@@ -112,6 +116,8 @@ class IncomingCasesFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null
+        
+        (activity as? AppCompatActivity)?.findViewById<View>(R.id.nav_view)?.visibility =
+            View.VISIBLE
     }
 }

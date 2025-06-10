@@ -98,7 +98,7 @@ class SocketManager(private val context: Context) {
                 }
 
                 showNotificationWithIntent(
-                    "New Incident",
+                    "Ada Insiden Kejahatan",
                     jsonData.optString("title", "Disini ada orang yang membutuhkan bantuan, ada deteksi kejahatan disini, ayo validasi!!"),
                     intent,
                     NOTIFICATION_REQUEST_CODE_INCIDENT
@@ -107,7 +107,7 @@ class SocketManager(private val context: Context) {
             } catch (e: Exception) {
                 Log.e(TAG, "Error parsing incident data: ${e.message}")
                 e.printStackTrace()
-                showNotification("New Incident", args[0].toString())
+                showNotification("Ada Insiden Kejahatan", args[0].toString())
             }
         }
     }
@@ -121,7 +121,7 @@ class SocketManager(private val context: Context) {
         if (args.isNotEmpty()) {
             try {
                 val data = args[0].toString()
-                Log.d(TAG, "New Report: $data")
+                Log.d(TAG, "Ada Laporan Kejahatan: $data")
 
                 val jsonData = JSONObject(data)
                 val userRole = getUserRole()
@@ -161,7 +161,7 @@ class SocketManager(private val context: Context) {
                 } else {
                     Intent(context, DetailCasesActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                        putExtra("news_title", jsonData.optString("title", "New Report"))
+                        putExtra("news_title", jsonData.optString("title", "Ada Laporan Kejahatan"))
                         putExtra("news_description", jsonData.optString("description", ""))
                         putExtra("news_date", jsonData.optString("created_at", ""))
                         putExtra("news_timestamp", jsonData.optString("created_at", ""))
@@ -176,8 +176,8 @@ class SocketManager(private val context: Context) {
                 }
 
                 showNotificationWithIntent(
-                    "New Report",
-                    jsonData.optString("title", "New Report"),
+                    "Ada Laporan Kejahatan",
+                    jsonData.optString("title", "Ada Laporan Kejahatan"),
                     intent,
                     NOTIFICATION_REQUEST_CODE_REPORT
                 )
@@ -185,7 +185,7 @@ class SocketManager(private val context: Context) {
             } catch (e: Exception) {
                 Log.e(TAG, "Error parsing report data: ${e.message}")
                 e.printStackTrace()
-                showNotification("New Report", args[0].toString())
+                showNotification("Ada Laporan Kejahatan", args[0].toString())
             }
         }
     }

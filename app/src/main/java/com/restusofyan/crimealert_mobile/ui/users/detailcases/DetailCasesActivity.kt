@@ -18,6 +18,8 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.restusofyan.crimealert_mobile.R
 import com.restusofyan.crimealert_mobile.databinding.ActivityDetailCasesBinding
+import java.text.SimpleDateFormat
+import java.util.*
 
 class DetailCasesActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -67,14 +69,57 @@ class DetailCasesActivity : AppCompatActivity(), OnMapReadyCallback {
         })
     }
 
+    private fun formatTimestampToGMT7(timestamp: String?): String {
+        return try {
+            if (timestamp.isNullOrEmpty()) return "--:--"
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+            inputFormat.timeZone = TimeZone.getTimeZone("UTC") // Assume input is UTC
+
+            val outputFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+            outputFormat.timeZone = TimeZone.getTimeZone("GMT+7") // Convert to GMT+7
+
+            val date = inputFormat.parse(timestamp.replace("Z", ""))
+            date?.let { outputFormat.format(it) } ?: "--:--"
+        } catch (e: Exception) {
+            // Fallback to original logic if parsing fails
+            val tIndex = timestamp?.indexOf('T') ?: -1
+            if (tIndex != -1 && timestamp != null && timestamp.length >= tIndex + 6) {
+                timestamp.substring(tIndex + 1, tIndex + 6)
+            } else {
+                "--:--"
+            }
+        }
+    }
+
+    private fun formatDateToGMT7(dateString: String?): String {
+        return try {
+            if (dateString.isNullOrEmpty()) return "--/--/----"
+            val inputFormat = if (dateString.contains('T')) {
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+            } else {
+                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            }
+            inputFormat.timeZone = TimeZone.getTimeZone("UTC")
+
+            val outputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            outputFormat.timeZone = TimeZone.getTimeZone("GMT+7")
+
+            val cleanDateString = dateString.replace("Z", "")
+            val date = inputFormat.parse(cleanDateString)
+            date?.let { outputFormat.format(it) } ?: "--/--/----"
+        } catch (e: Exception) {
+            dateString?.substring(0, minOf(10, dateString.length)) ?: "--/--/----"
+        }
+    }
+
     private fun setupDetailCasesData() {
         binding.tvTitle.text = intent.getStringExtra("news_title")
         binding.tvDescription.text = intent.getStringExtra("news_description")
-        binding.tvNewsTimestamp.text = intent.getStringExtra("news_timestamp")?.let { raw ->
-            val tIndex = raw.indexOf('T')
-            if (tIndex != -1 && raw.length >= tIndex + 6) raw.substring(tIndex + 1, tIndex + 6) else "--:--"
-        } ?: "--:--"
-        binding.tvDate.text = intent.getStringExtra("news_date")?.substring(0, 10) ?: "--/--/----"
+        val rawTimestamp = intent.getStringExtra("news_timestamp")
+        binding.tvNewsTimestamp.text = formatTimestampToGMT7(rawTimestamp)
+        val rawDate = intent.getStringExtra("news_date")
+        binding.tvDate.text = formatDateToGMT7(rawDate)
+
         var imageUrl = intent.getStringExtra("news_image_url")
         if (!imageUrl.isNullOrEmpty()) {
             Glide.with(this)
@@ -143,5 +188,4 @@ class DetailCasesActivity : AppCompatActivity(), OnMapReadyCallback {
             true
         }
     }
-
 }

@@ -64,8 +64,7 @@ class NotificationAdapter(
         private val ivNotificationImage: ImageView? = itemView.findViewById(R.id.ivNotificationImage)
 
         fun bind(notification: NotificationItem) {
-            tvTimestamp.text = formatTimestamp(notification.timestamp)
-
+            tvTimestamp.text = formatTimestampToGMT7(notification.timestamp)
 
             if (notification.isRead) {
                 cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.white))
@@ -91,13 +90,54 @@ class NotificationAdapter(
             }
         }
 
-        private fun formatTimestamp(timestamp: String): String {
+        private fun formatTimestampToGMT7(timestamp: String): String {
+            if (timestamp.isEmpty()) {
+                return "Waktu tidak tersedia"
+            }
+
             return try {
-                val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-                val outputFormat = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
-                val date = inputFormat.parse(timestamp)
-                outputFormat.format(date ?: Date())
+                val inputFormats = listOf(
+                    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).apply {
+                        timeZone = TimeZone.getTimeZone("UTC")
+                    },
+                    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault()).apply {
+                        timeZone = TimeZone.getTimeZone("UTC")
+                    },
+                    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).apply {
+                        timeZone = TimeZone.getTimeZone("UTC")
+                    },
+                    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
+                        timeZone = TimeZone.getTimeZone("UTC")
+                    },
+                    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.getDefault()),
+                    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.getDefault()),
+                    SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).apply {
+                        timeZone = TimeZone.getTimeZone("GMT+7")
+                    }
+                )
+
+                var date: Date? = null
+                for (format in inputFormats) {
+                    try {
+                        date = format.parse(timestamp)
+                        break
+                    } catch (e: Exception) {
+                        continue
+                    }
+                }
+
+                if (date == null) {
+                    return timestamp
+                }
+
+                val outputFormat = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale("id", "ID")).apply {
+                    timeZone = TimeZone.getTimeZone("GMT+7")
+                }
+
+                outputFormat.format(date)
+
             } catch (e: Exception) {
+                e.printStackTrace()
                 timestamp
             }
         }

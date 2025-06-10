@@ -25,6 +25,8 @@ import com.restusofyan.crimealert_mobile.data.repository.CrimeAlertRepository
 import com.restusofyan.crimealert_mobile.databinding.ActivityDetailCasesPoliceBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -87,15 +89,66 @@ class DetailCasesPoliceActivity : AppCompatActivity(), OnMapReadyCallback {
         })
     }
 
+    private fun formatTimestampToGMT7(timestamp: String?): String {
+        return try {
+            if (timestamp.isNullOrEmpty()) return "--:--"
+
+            // Parse ISO 8601 timestamp (assuming format like "2023-12-01T10:30:00Z" or similar)
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+            inputFormat.timeZone = TimeZone.getTimeZone("UTC") // Assume input is UTC
+
+            val outputFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+            outputFormat.timeZone = TimeZone.getTimeZone("GMT+7") // Convert to GMT+7
+
+            val date = inputFormat.parse(timestamp.replace("Z", ""))
+            date?.let { outputFormat.format(it) } ?: "--:--"
+        } catch (e: Exception) {
+            // Fallback to original logic if parsing fails
+            val tIndex = timestamp?.indexOf('T') ?: -1
+            if (tIndex != -1 && timestamp != null && timestamp.length >= tIndex + 6) {
+                timestamp.substring(tIndex + 1, tIndex + 6)
+            } else {
+                "--:--"
+            }
+        }
+    }
+
+    private fun formatDateToGMT7(dateString: String?): String {
+        return try {
+            if (dateString.isNullOrEmpty()) return "--/--/----"
+
+            // Parse ISO 8601 date (assuming format like "2023-12-01T10:30:00Z" or "2023-12-01")
+            val inputFormat = if (dateString.contains('T')) {
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+            } else {
+                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            }
+            inputFormat.timeZone = TimeZone.getTimeZone("UTC")
+
+            val outputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            outputFormat.timeZone = TimeZone.getTimeZone("GMT+7")
+
+            val cleanDateString = dateString.replace("Z", "")
+            val date = inputFormat.parse(cleanDateString)
+            date?.let { outputFormat.format(it) } ?: "--/--/----"
+        } catch (e: Exception) {
+            // Fallback to original logic if parsing fails
+            dateString?.substring(0, minOf(10, dateString.length)) ?: "--/--/----"
+        }
+    }
+
     private fun setupDetailCasesData() {
         binding.tvTitle.text = intent.getStringExtra("report_title")
         binding.tvDescription.text = intent.getStringExtra("report_description")
-        binding.tvDate.text = intent.getStringExtra("report_date")?.substring(0, 10) ?: "--/--/----"
-        binding.tvNewsTimestamp.text = intent.getStringExtra("report_timestamp")?.let { raw ->
-            val tIndex = raw.indexOf('T')
-            if (tIndex != -1 && raw.length >= tIndex + 6) raw.substring(tIndex + 1, tIndex + 6) else "--:--"
-        } ?: "--:--"
-        
+
+        // Format date to GMT+7
+        val rawDate = intent.getStringExtra("report_date")
+        binding.tvDate.text = formatDateToGMT7(rawDate)
+
+        // Format timestamp to GMT+7
+        val rawTimestamp = intent.getStringExtra("report_timestamp")
+        binding.tvNewsTimestamp.text = formatTimestampToGMT7(rawTimestamp)
+
         reportId = intent.getIntExtra("report_id", 0)
         currentStatus = intent.getStringExtra("report_status") ?: "belum_ditangani"
 
@@ -157,7 +210,7 @@ class DetailCasesPoliceActivity : AppCompatActivity(), OnMapReadyCallback {
                 updateCaseStatus(newStatus)
             }
             .setNegativeButton("Batal") { _, _ ->
-                val statusOptions = listOf("belum_ditangani", "sedang_ditangani", "sudah_ditangani")
+                val statusOptions = listOf("tidak_dapat_ditangani", "belum_ditangani", "sedang_ditangani", "sudah_ditangani")
                 val currentIndex = statusOptions.indexOf(currentStatus)
                 if (currentIndex != -1) {
                     binding.spinnerStatus.setSelection(currentIndex)
@@ -189,7 +242,7 @@ class DetailCasesPoliceActivity : AppCompatActivity(), OnMapReadyCallback {
                         "Gagal memperbarui status: ${response.body()?.message}",
                         Toast.LENGTH_SHORT).show()
 
-                    val statusOptions = listOf("belum_ditangani", "sedang_ditangani", "sudah_ditangani")
+                    val statusOptions = listOf("tidak_dapat_ditangani", "belum_ditangani", "sedang_ditangani", "sudah_ditangani")
                     val currentIndex = statusOptions.indexOf(currentStatus)
                     if (currentIndex != -1) {
                         binding.spinnerStatus.setSelection(currentIndex)
@@ -199,7 +252,7 @@ class DetailCasesPoliceActivity : AppCompatActivity(), OnMapReadyCallback {
                 Toast.makeText(this@DetailCasesPoliceActivity,
                     "Error: ${e.message}", Toast.LENGTH_SHORT).show()
 
-                val statusOptions = listOf("belum_ditangani", "sedang_ditangani", "sudah_ditangani")
+                val statusOptions = listOf("tidak_dapat_ditangani", "belum_ditangani", "sedang_ditangani", "sudah_ditangani")
                 val currentIndex = statusOptions.indexOf(currentStatus)
                 if (currentIndex != -1) {
                     binding.spinnerStatus.setSelection(currentIndex)

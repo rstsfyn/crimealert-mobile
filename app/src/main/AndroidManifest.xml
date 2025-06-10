@@ -49,7 +49,7 @@
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_API_KEY" />
+            android:value="AIzaSyAEnDuSWehTTMRGx4NTMa44r_igq7LofP8" />
         <activity
             android:name=".ui.alluserpage.validateinsidens.ValidateInsidensActivity"
             android:exported="false"

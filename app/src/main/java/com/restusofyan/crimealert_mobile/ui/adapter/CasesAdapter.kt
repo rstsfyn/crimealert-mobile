@@ -10,6 +10,8 @@ import com.bumptech.glide.Glide
 import com.restusofyan.crimealert_mobile.R
 import com.restusofyan.crimealert_mobile.data.model.CasesModel
 import com.restusofyan.crimealert_mobile.data.response.casesreports.ListReportsItem
+import java.text.SimpleDateFormat
+import java.util.*
 
 class CasesAdapter(
     private var casesList: List<ListReportsItem>,
@@ -38,17 +40,9 @@ class CasesAdapter(
 
         holder.casesTitle.text = currentItem.title ?: "No Title"
         holder.casesDescription.text = currentItem.description ?: "No Description"
-        val time = currentItem.createdAt?.let {
-            val tIndex = it.indexOf('T')
-            if (tIndex != -1 && it.length >= tIndex + 6) {
-                it.substring(tIndex + 1, tIndex + 6)
-            } else {
-                "--:--"
-            }
-        } ?: "--:--"
-        holder.casesTimestamp.text = time
-
-        holder.casesDate.text = currentItem.createdAt?.substringBefore("T") ?: "----/--/--"
+        val timeAndDate = convertToGMT7(currentItem.createdAt)
+        holder.casesTimestamp.text = timeAndDate.first
+        holder.casesDate.text = timeAndDate.second
 
         val rawStatus = currentItem.statusKasus ?: "STATUS_TIDAK_DISET"
         val formattedStatus = rawStatus.lowercase()
@@ -76,7 +70,6 @@ class CasesAdapter(
             }
         }
 
-
         Glide.with(holder.itemView.context)
             .load(currentItem.picture)
             .centerCrop()
@@ -101,5 +94,53 @@ class CasesAdapter(
     fun updateData(newData: List<ListReportsItem>) {
         casesList = newData
         notifyDataSetChanged()
+    }
+
+    private fun convertToGMT7(dateTimeString: String?): Pair<String, String> {
+        if (dateTimeString.isNullOrEmpty()) {
+            return Pair("--:--", "----/--/--")
+        }
+
+        return try {
+            val inputFormats = listOf(
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                },
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                },
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.getDefault()),
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.getDefault())
+            )
+
+            var date: Date? = null
+            for (format in inputFormats) {
+                try {
+                    date = format.parse(dateTimeString)
+                    break
+                } catch (e: Exception) {
+                    continue
+                }
+            }
+
+            if (date == null) {
+                return Pair("--:--", "----/--/--")
+            }
+            val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault()).apply {
+                timeZone = TimeZone.getTimeZone("GMT+7")
+            }
+            val dateFormat = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).apply {
+                timeZone = TimeZone.getTimeZone("GMT+7")
+            }
+
+            val time = timeFormat.format(date)
+            val dateFormatted = dateFormat.format(date)
+
+            Pair(time, dateFormatted)
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Pair("--:--", "----/--/--")
+        }
     }
 }

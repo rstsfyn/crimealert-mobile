@@ -136,10 +136,10 @@
                     android:src="@drawable/ic_createreport" />
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="72dp"
                     android:layout_height="wrap_content"
                     android:paddingTop="8dp"
-                    android:text=" Create   Report "
+                    android:text="Create Report"
                     android:textAlignment="center"
                     android:textColor="@android:color/black"
                     android:textSize="16sp" />
