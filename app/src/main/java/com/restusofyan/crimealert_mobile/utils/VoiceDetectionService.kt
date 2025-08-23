@@ -13,7 +13,6 @@ import android.location.Location
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -23,8 +22,6 @@ import com.restusofyan.crimealert_mobile.data.repository.CrimeAlertRepository
 import com.restusofyan.crimealert_mobile.ui.users.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody
 import org.tensorflow.lite.support.label.Category
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -39,22 +36,73 @@ class VoiceDetectionService : Service() {
         const val CHANNEL_ID = "voice_detection_channel"
         const val CHANNEL_NAME = "Voice Detection Service"
         const val NOTIF_ID = 1
+        const val EXTRA_SENSITIVITY = "sensitivity_level"
         private const val TAG = "VoiceDetectionService"
     }
 
     private var audioHelper: AudioClassificationHelper? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var isScreamDetected = false
+    private var sensitivityLevel: SensitivityLevel? = null // Initialize as null
 
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "Service created")
         createNotificationChannel()
+
+        // Don't set default sensitivity here - wait for onStartCommand
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d(TAG, "Service onStartCommand called")
+
+        // Priority 1: Get sensitivity from intent
+        val sensitivityFromIntent = intent?.getStringExtra(EXTRA_SENSITIVITY)
+        Log.d(TAG, "Received sensitivity from intent: $sensitivityFromIntent")
+
+        if (sensitivityFromIntent != null) {
+            sensitivityLevel = SensitivityLevel.fromString(sensitivityFromIntent)
+            // Save to SharedPreferences for future use
+            saveSensitivityToPrefs(sensitivityLevel!!)
+            Log.d(TAG, "Set sensitivity from intent: ${sensitivityLevel!!.displayName} (${sensitivityLevel!!.threshold})")
+        } else {
+            // Priority 2: Load from SharedPreferences only if not set from intent
+            sensitivityLevel = loadSensitivityFromPrefs()
+            Log.d(TAG, "Loaded sensitivity from prefs: ${sensitivityLevel!!.displayName} (${sensitivityLevel!!.threshold})")
+        }
+
+        Log.d(TAG, "Final sensitivity level: ${sensitivityLevel!!.displayName} (threshold: ${sensitivityLevel!!.threshold})")
+
+        // Update notification with current sensitivity
         startForeground(NOTIF_ID, buildNotification())
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        // Stop any existing audio helper
+        audioHelper?.stopAudioClassification()
+        audioHelper = null
+
         setupAudioHelper()
         startVoiceDetection()
+
+        return START_NOT_STICKY
+    }
+
+    private fun saveSensitivityToPrefs(sensitivity: SensitivityLevel) {
+        val sharedPref = getSharedPreferences("voice_detection_settings", MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putString("sensitivity_level", sensitivity.displayName)
+            putFloat("sensitivity_threshold", sensitivity.threshold.toFloat())
+            apply()
+        }
+        Log.d(TAG, "Saved sensitivity to prefs: ${sensitivity.displayName} (${sensitivity.threshold})")
+    }
+
+    private fun loadSensitivityFromPrefs(): SensitivityLevel {
+        val sharedPref = getSharedPreferences("voice_detection_settings", MODE_PRIVATE)
+        val sensitivityName = sharedPref.getString("sensitivity_level", SensitivityLevel.LOW.displayName)
+        val sensitivity = SensitivityLevel.fromString(sensitivityName ?: SensitivityLevel.LOW.displayName)
+        Log.d(TAG, "Loading from prefs - Name: $sensitivityName, Sensitivity: ${sensitivity.displayName} (${sensitivity.threshold})")
+        return sensitivity
     }
 
     private fun createNotificationChannel() {
@@ -74,9 +122,12 @@ class VoiceDetectionService : Service() {
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
+        // Use current sensitivity or default
+        val currentSensitivity = sensitivityLevel ?: SensitivityLevel.LOW
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Voice Detection Active")
-            .setContentText("Mendeteksi suara teriakan dan membagikan lokasi...")
+            .setContentText("Mendeteksi suara teriakan dengan sensitivitas ${currentSensitivity.displayName}...")
             .setSmallIcon(R.drawable.ic_mic_putih)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setContentIntent(pendingIntent)
@@ -86,6 +137,11 @@ class VoiceDetectionService : Service() {
     }
 
     private fun setupAudioHelper() {
+        // Ensure sensitivity is set before setting up audio helper
+        if (sensitivityLevel == null) {
+            sensitivityLevel = loadSensitivityFromPrefs()
+        }
+
         audioHelper = AudioClassificationHelper(
             context = this,
             classifierListener = object : AudioClassificationHelper.ClassifierListener {
@@ -94,14 +150,20 @@ class VoiceDetectionService : Service() {
                 }
 
                 override fun onResults(results: List<Category>, inferenceTime: Long) {
+                    val currentSensitivity = sensitivityLevel ?: SensitivityLevel.LOW
+
                     for (category in results) {
-                        Log.d(TAG, "Label: ${category.label}, Score: ${category.score}")
-                        if (category.label == "scream" && category.score > 0.9) {
-                            Log.d(TAG, "Screaming sound detected with score ${category.score}")
+                        Log.d(TAG, "Detection - Label: ${category.label}, Score: ${category.score}, Current Threshold: ${currentSensitivity.threshold}, Sensitivity: ${currentSensitivity.displayName}")
+
+                        // Use the dynamic threshold based on sensitivity level
+                        if (category.label == "scream" && category.score > currentSensitivity.threshold) {
+                            Log.d(TAG, "🚨 SCREAM DETECTED! Score: ${category.score} > Threshold: ${currentSensitivity.threshold} (${currentSensitivity.displayName} sensitivity)")
                             isScreamDetected = true
                             audioHelper?.stopAudioClassification()
                             handleScreamDetected()
                             break
+                        } else if (category.label == "scream") {
+                            Log.d(TAG, "Scream detected but below threshold: ${category.score} <= ${currentSensitivity.threshold}")
                         }
                     }
                 }
@@ -110,8 +172,9 @@ class VoiceDetectionService : Service() {
     }
 
     private fun startVoiceDetection() {
+        val currentSensitivity = sensitivityLevel ?: SensitivityLevel.LOW
         audioHelper?.startAudioClassification()
-        Log.d(TAG, "Voice detection started in service")
+        Log.d(TAG, "Voice detection started in service with ${currentSensitivity.displayName} sensitivity (threshold: ${currentSensitivity.threshold})")
     }
 
     private fun handleScreamDetected() {
@@ -198,9 +261,11 @@ class VoiceDetectionService : Service() {
     }
 
     private fun updateNotificationForScreamDetected() {
+        val currentSensitivity = sensitivityLevel ?: SensitivityLevel.LOW
+
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("⚠️ Scream Detected!")
-            .setContentText("Emergency sound detected. Getting location...")
+            .setContentText("Emergency sound detected (${currentSensitivity.displayName} sensitivity). Getting location...")
             .setSmallIcon(R.drawable.ic_mic_putih)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(false)
@@ -216,12 +281,13 @@ class VoiceDetectionService : Service() {
         isLocationUnavailable: Boolean = false
     ) {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val currentSensitivity = sensitivityLevel ?: SensitivityLevel.LOW
 
         val intent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         val contentText = if (isLocationUnavailable) {
-            "Scream detected! Location unavailable"
+            "Scream detected with ${currentSensitivity.displayName} sensitivity! Location unavailable"
         } else {
             "Kamu melaporkan di lokasi ini $latitude, $longitude, semoga bantuan cepat datang"
         }
@@ -277,17 +343,12 @@ class VoiceDetectionService : Service() {
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error saving scream to API: ${e.message}", e)
-            }finally {
+            } finally {
                 stopForeground(true)
                 stopSelf()
             }
         }
         ScreamDetectionManager.getInstance().notifyScreamDetected(latitude, longitude)
-    }
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "Service onStartCommand called")
-        return START_NOT_STICKY
     }
 
     override fun onDestroy() {

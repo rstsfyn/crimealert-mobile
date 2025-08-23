@@ -1,5 +1,4 @@
 package com.restusofyan.crimealert_mobile.ui.users.home
-
 import android.Manifest
 import android.content.Context
 import android.content.Intent
@@ -20,10 +19,13 @@ import com.bumptech.glide.Glide
 import com.restusofyan.crimealert_mobile.R
 import com.restusofyan.crimealert_mobile.databinding.FragmentHomeBinding
 import com.restusofyan.crimealert_mobile.ui.adapter.NewsAdapter
+import com.restusofyan.crimealert_mobile.ui.customview.CustomDialogSensitivityFragment
+import com.restusofyan.crimealert_mobile.ui.customview.CustomDialogShareLocationFragment
 import com.restusofyan.crimealert_mobile.ui.customview.CustomDialogVoiceDetectionFragment
+import com.restusofyan.crimealert_mobile.ui.customview.VoiceDetectionDialogManager
 import com.restusofyan.crimealert_mobile.ui.users.detailcases.DetailCasesActivity
 import com.restusofyan.crimealert_mobile.utils.ScreamDetectionManager
-import com.restusofyan.crimealert_mobile.utils.VoiceDetectionService
+import com.restusofyan.crimealert_mobile.utils.SensitivityLevel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -32,6 +34,8 @@ class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
     private val viewModel: HomeViewModel by viewModels()
+    private var dialogManager: VoiceDetectionDialogManager? = null
+    private var selectedSensitivity = SensitivityLevel.LOW
 
     private lateinit var newsAdapter: NewsAdapter
 
@@ -202,21 +206,43 @@ class HomeFragment : Fragment() {
     private fun showVoiceDetectionDialog() {
         val dialog = CustomDialogVoiceDetectionFragment()
         dialog.onYesClick = {
-            startVoiceDetectionService()
-            Toast.makeText(requireContext(), "Voice detection started", Toast.LENGTH_SHORT).show()
+            showSensitivityDialog()
         }
-        dialog.show(parentFragmentManager, CustomDialogVoiceDetectionFragment::class.java.simpleName)
+        dialog.onNoClick = {
+            Toast.makeText(requireContext(), "Voice detection cancelled", Toast.LENGTH_SHORT).show()
+        }
+        dialog.show(parentFragmentManager, "VoiceDetectionDialog")
     }
 
-    private fun startVoiceDetectionService() {
-        val serviceIntent = Intent(requireContext(), VoiceDetectionService::class.java)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            requireContext().startForegroundService(serviceIntent)
-        } else {
-            requireContext().startService(serviceIntent)
+    private fun showSensitivityDialog() {
+        val dialog = CustomDialogSensitivityFragment()
+        dialog.onYesClick = { sensitivity ->
+            selectedSensitivity = sensitivity
+            Log.d("HomeFragment", "Selected sensitivity: ${sensitivity.displayName}")
+            showShareLocationDialog()
         }
-        Log.d("HomeFragment", "VoiceDetectionService started")
+        dialog.onNoClick = {
+            showVoiceDetectionDialog()
+        }
+        dialog.show(parentFragmentManager, "SensitivityDialog")
     }
+
+    private fun showShareLocationDialog() {
+        val dialog = CustomDialogShareLocationFragment()
+        dialog.setSensitivity(selectedSensitivity)
+        dialog.onYesClick = {
+            Toast.makeText(
+                requireContext(),
+                "Voice detection started with ${selectedSensitivity.displayName} sensitivity",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+        dialog.onNoClick = {
+            showSensitivityDialog()
+        }
+        dialog.show(parentFragmentManager, "ShareLocationDialog")
+    }
+
 
     private fun ambilTokenSession(): String? {
         val sharedPref = requireContext().getSharedPreferences("user_session", Context.MODE_PRIVATE)
@@ -226,6 +252,8 @@ class HomeFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         ScreamDetectionManager.getInstance().removeListener(screamDetectionListener)
+        dialogManager?.cleanup()
+        dialogManager = null
         _binding = null
     }
 }

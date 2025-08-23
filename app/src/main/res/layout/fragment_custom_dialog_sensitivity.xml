@@ -1,0 +1,227 @@
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="24dp"
+    android:background="@drawable/rounded_background">
+
+    <ImageView
+        android:id="@+id/ivImage"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:src="@drawable/ic_adjust_sensitivity" />
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Scream Sensitivity"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:textColor="@android:color/black"
+        app:layout_constraintTop_toBottomOf="@+id/ivImage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/tvMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Adjust it according to your needs!"
+        android:textSize="18sp"
+        android:layout_marginTop="3dp"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/ll_sensitivity_slider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@id/tvMessage"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <RelativeLayout
+            android:id="@+id/rl_slider_container"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginHorizontal="20dp"
+            android:paddingVertical="20dp">
+
+            <View
+                android:id="@+id/view_slider_track"
+                android:layout_width="match_parent"
+                android:layout_height="8dp"
+                android:layout_centerVertical="true"
+                android:background="@drawable/slider_track_background"
+                android:layout_marginHorizontal="10dp" />
+
+            <View
+                android:id="@+id/view_slider_fill"
+                android:layout_width="30dp"
+                android:layout_height="8dp"
+                android:layout_centerVertical="true"
+                android:layout_alignStart="@id/view_slider_track"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/slider_dot_active" />
+
+            <!-- Slider Dots with improved positioning -->
+            <View
+                android:id="@+id/dot_low"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_centerVertical="true"
+                android:layout_alignStart="@id/view_slider_track"
+                android:layout_marginStart="0dp"
+                android:background="@drawable/slider_dot_active"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?android:attr/selectableItemBackgroundBorderless" />
+
+            <View
+                android:id="@+id/dot_mid"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="true"
+                android:background="@drawable/slider_dot_inactive"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?android:attr/selectableItemBackgroundBorderless" />
+
+            <View
+                android:id="@+id/dot_high"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_centerVertical="true"
+                android:layout_alignEnd="@id/view_slider_track"
+                android:layout_marginEnd="0dp"
+                android:background="@drawable/slider_dot_inactive"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?android:attr/selectableItemBackgroundBorderless" />
+
+        </RelativeLayout>
+
+        <!-- Slider Labels -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="10dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tv_low"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Low"
+                android:textAlignment="center"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/secondary"
+                android:padding="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground"
+                android:foreground="?android:attr/selectableItemBackground" />
+
+            <TextView
+                android:id="@+id/tv_mid"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Mid"
+                android:textAlignment="center"
+                android:textSize="16sp"
+                android:textColor="@android:color/darker_gray"
+                android:padding="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground"
+                android:foreground="?android:attr/selectableItemBackground" />
+
+            <TextView
+                android:id="@+id/tv_high"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="High"
+                android:textAlignment="center"
+                android:textSize="16sp"
+                android:textColor="@android:color/darker_gray"
+                android:padding="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?android:attr/selectableItemBackground"
+                android:foreground="?android:attr/selectableItemBackground" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_sensitivity_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:layout_marginHorizontal="10dp"
+            android:text="More accurate detection, fewer false alarms. Best for quiet environments."
+            android:textSize="14sp"
+            android:textColor="@android:color/darker_gray"
+            android:gravity="center"
+            android:padding="16dp"
+            android:background="#F8F9FA"
+            android:minHeight="72dp" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal"
+        android:weightSum="2"
+        app:layout_constraintTop_toBottomOf="@id/ll_sensitivity_slider"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <Button
+            android:id="@+id/btn_back"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.9"
+            android:layout_marginEnd="8dp"
+            android:text="Back"
+            android:backgroundTint="@android:color/white"
+            android:textAllCaps="false"
+            android:textColor="@android:color/black"
+            android:paddingVertical="14dp"
+            android:textSize="16sp"
+            app:strokeColor="#E0E0E0"
+            app:strokeWidth="1dp" />
+
+        <Button
+            android:id="@+id/btn_next"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.1"
+            android:layout_marginStart="8dp"
+            android:text="Next"
+            android:backgroundTint="@color/secondary"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:paddingVertical="14dp"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

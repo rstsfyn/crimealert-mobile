@@ -19,6 +19,8 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.DialogFragment
 import com.google.android.gms.location.*
 import com.restusofyan.crimealert_mobile.R
+import com.restusofyan.crimealert_mobile.utils.SensitivityLevel
+import com.restusofyan.crimealert_mobile.utils.VoiceDetectionService
 
 class CustomDialogShareLocationFragment : DialogFragment() {
 
@@ -28,6 +30,8 @@ class CustomDialogShareLocationFragment : DialogFragment() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
+
+    private var selectedSensitivity: SensitivityLevel = SensitivityLevel.LOW
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialogView = layoutInflater.inflate(R.layout.fragment_custom_dialog_share_location, null)
@@ -52,19 +56,41 @@ class CustomDialogShareLocationFragment : DialogFragment() {
             if (isLocationEnabled()) {
                 shareCurrentLocation()
             } else {
-                // Arahkan user untuk aktifkan lokasi
                 startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
             }
+
+            startVoiceDetectionServiceWithSensitivity()
             onYesClick?.invoke()
-            dialog.dismiss()
+            dismiss()
         }
 
         btnNo.setOnClickListener {
             onNoClick?.invoke()
-            dialog.dismiss()
+            dismiss()
         }
 
         return dialog
+    }
+
+    fun setSensitivity(sensitivity: SensitivityLevel) {
+        selectedSensitivity = sensitivity
+        Log.d("ShareLocationDialog", "Received sensitivity: ${sensitivity.displayName} (${sensitivity.threshold})")
+    }
+
+    private fun startVoiceDetectionServiceWithSensitivity() {
+        Log.d("ShareLocationDialog", "Starting service with sensitivity: ${selectedSensitivity.displayName}")
+
+        val serviceIntent = Intent(requireContext(), VoiceDetectionService::class.java).apply {
+            putExtra(VoiceDetectionService.EXTRA_SENSITIVITY, selectedSensitivity.displayName)
+        }
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            requireContext().startForegroundService(serviceIntent)
+        } else {
+            requireContext().startService(serviceIntent)
+        }
+
+        Log.d("ShareLocationDialog", "VoiceDetectionService started with ${selectedSensitivity.displayName} sensitivity")
     }
 
     private fun isLocationEnabled(): Boolean {
@@ -87,10 +113,7 @@ class CustomDialogShareLocationFragment : DialogFragment() {
             if (location != null) {
                 val latitude = location.latitude
                 val longitude = location.longitude
-
                 Log.d("LocationShare", "Lat: $latitude, Lng: $longitude")
-
-                // TODO: Kirim lokasi ke server atau ViewModel
             } else {
                 Log.e("LocationShare", "Last location not available, requesting update...")
                 requestNewLocationData()
@@ -114,12 +137,7 @@ class CustomDialogShareLocationFragment : DialogFragment() {
                 val location = locationResult.lastLocation
                 val latitude = location?.latitude
                 val longitude = location?.longitude
-
                 Log.d("LocationShare", "Updated Lat: $latitude, Lng: $longitude")
-
-                // TODO: Kirim lokasi ke server atau ViewModel
-
-                // Hentikan pembaruan lokasi setelah dapat hasil
                 fusedLocationClient.removeLocationUpdates(this)
             }
         }

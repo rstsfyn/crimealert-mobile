@@ -33,21 +33,15 @@ class CustomDialogVoiceDetectionFragment : DialogFragment() {
         val btnNo = dialogView.findViewById<Button>(R.id.btn_cancel)
 
         btnYes.setOnClickListener {
-            onYesClick?.invoke() // Memanggil fungsi dari Fragment utama
-            dialog.dismiss()
-            showShareLocationDialog()
+            onYesClick?.invoke()
+            dismiss()
         }
 
         btnNo.setOnClickListener {
             onNoClick?.invoke()
-            dialog.dismiss()
+            dismiss()
         }
 
         return dialog
-    }
-
-    private fun showShareLocationDialog() {
-        val shareLocationDialog = CustomDialogShareLocationFragment()
-        shareLocationDialog.show(parentFragmentManager, CustomDialogShareLocationFragment::class.java.simpleName)
     }
 }

@@ -45,7 +45,7 @@
         android:id="@+id/btn_no"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="No"
+        android:text="Back"
         android:backgroundTint="@color/white"
         android:layout_marginTop="30dp"
         android:textAllCaps="false"
