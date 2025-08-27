@@ -100,4 +100,11 @@ dependencies {
     implementation("io.socket:socket.io-client:2.0.1") {
         exclude(group = "org.json", module = "json")
     }
+
+
+    implementation ("com.google.maps.android:android-maps-utils:2.4.0")
+
+    // Google Play Services for Maps and Location
+    implementation ("com.google.android.gms:play-services-maps:18.2.0")
+    implementation ("com.google.android.gms:play-services-location:21.0.1")
 }

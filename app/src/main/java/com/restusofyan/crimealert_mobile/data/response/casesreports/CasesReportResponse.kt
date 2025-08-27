@@ -3,7 +3,6 @@ package com.restusofyan.crimealert_mobile.data.response.casesreports
 import com.google.gson.annotations.SerializedName
 
 data class CasesReportResponse(
-
 	@field:SerializedName("listReports")
 	val listReports: List<ListReportsItem?>? = null,
 
@@ -15,7 +14,6 @@ data class CasesReportResponse(
 )
 
 data class ListReportsItem(
-
 	@field:SerializedName("User")
 	val user: User? = null,
 
@@ -45,7 +43,6 @@ data class ListReportsItem(
 )
 
 data class User(
-
 	@field:SerializedName("name")
 	val name: String? = null,
 
@@ -57,7 +54,6 @@ data class User(
 )
 
 data class Map(
-
 	@field:SerializedName("latitude")
 	val latitude: Double? = null,
 

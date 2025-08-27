@@ -24,6 +24,7 @@ import com.restusofyan.crimealert_mobile.ui.customview.CustomDialogShareLocation
 import com.restusofyan.crimealert_mobile.ui.customview.CustomDialogVoiceDetectionFragment
 import com.restusofyan.crimealert_mobile.ui.customview.VoiceDetectionDialogManager
 import com.restusofyan.crimealert_mobile.ui.users.detailcases.DetailCasesActivity
+import com.restusofyan.crimealert_mobile.ui.alluserpage.crimepronearea.CrimeProneAreaActivity
 import com.restusofyan.crimealert_mobile.utils.ScreamDetectionManager
 import com.restusofyan.crimealert_mobile.utils.SensitivityLevel
 import dagger.hilt.android.AndroidEntryPoint
@@ -181,6 +182,13 @@ class HomeFragment : Fragment() {
                     )
                 )
             }
+        }
+
+        // Crime Prone Area click listener
+        binding.cvCrimeProneArea.setOnClickListener {
+            Log.d("HomeFragment", "Crime Prone Area clicked!")
+            val intent = Intent(requireContext(), CrimeProneAreaActivity::class.java)
+            startActivity(intent)
         }
 
         binding.tvTrendingcasesSeeall.setOnClickListener {

@@ -11,6 +11,8 @@ import com.restusofyan.crimealert_mobile.data.response.insidens.UploadInsidensRe
 import com.restusofyan.crimealert_mobile.data.response.login.LoginRequest
 import com.restusofyan.crimealert_mobile.data.response.login.LoginResponse
 import com.restusofyan.crimealert_mobile.data.response.profile.MyProfileResponse
+import com.restusofyan.crimealert_mobile.data.response.profile.UpdateAvatarRequest
+import com.restusofyan.crimealert_mobile.data.response.profile.UpdateAvatarResponse
 import com.restusofyan.crimealert_mobile.data.response.register.RegisterRequest
 import com.restusofyan.crimealert_mobile.data.response.register.RegisterResponse
 import okhttp3.MultipartBody
@@ -18,28 +20,51 @@ import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.Response
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class CrimeAlertRepository @Inject constructor(
     private val apiService: ApiService
 ) {
+
     suspend fun loginUser(loginRequest: LoginRequest): Response<LoginResponse> {
-        return apiService.loginUser(loginRequest)
+        return try {
+            apiService.loginUser(loginRequest)
+        } catch (e: Exception) {
+            throw Exception("Login failed: ${e.message}")
+        }
     }
 
     suspend fun registerUser(registerRequest: RegisterRequest): Response<RegisterResponse> {
-        return apiService.registerUser(registerRequest)
+        return try {
+            apiService.registerUser(registerRequest)
+        } catch (e: Exception) {
+            throw Exception("Registration failed: ${e.message}")
+        }
     }
 
     suspend fun getMyProfile(token: String): Response<MyProfileResponse> {
-        return apiService.myProfile("Bearer $token")
+        return try {
+            apiService.myProfile("Bearer $token")
+        } catch (e: Exception) {
+            throw Exception("Failed to fetch profile: ${e.message}")
+        }
     }
 
     suspend fun getAllReports(token: String): Response<CasesReportResponse> {
-        return apiService.getAllReports("Bearer $token")
+        return try {
+            apiService.getAllReports("Bearer $token")
+        } catch (e: Exception) {
+            throw Exception("Failed to fetch reports: ${e.message}")
+        }
     }
 
     suspend fun getMyReports(token: String): Response<CasesReportResponse> {
-        return apiService.getReportsMe("Bearer $token")
+        return try {
+            apiService.getReportsMe("Bearer $token")
+        } catch (e: Exception) {
+            throw Exception("Failed to fetch my reports: ${e.message}")
+        }
     }
 
     fun createNewReport(
@@ -54,11 +79,19 @@ class CrimeAlertRepository @Inject constructor(
     }
 
     suspend fun getHandledHistory(token: String): Response<CasesHandledReportResponse> {
-        return apiService.getHandledReportHistory("Bearer $token")
+        return try {
+            apiService.getHandledReportHistory("Bearer $token")
+        } catch (e: Exception) {
+            throw Exception("Failed to fetch handled history: ${e.message}")
+        }
     }
 
     suspend fun updateReportStatus(token: String, reportId: Int, status: String): Response<UpdateStatusReportResponse> {
-        return apiService.updateStatus("Bearer $token", reportId, UpdateStatusRequest(status))
+        return try {
+            apiService.updateStatus("Bearer $token", reportId, UpdateStatusRequest(status))
+        } catch (e: Exception) {
+            throw Exception("Failed to update status: ${e.message}")
+        }
     }
 
     suspend fun uploadScreamDetection(
@@ -67,12 +100,16 @@ class CrimeAlertRepository @Inject constructor(
         latitude: Double,
         longitude: Double
     ): Response<UploadInsidensResponse> {
-        val request = UploadInsidensRequest(
-            voice_detection = voiceDetection,
-            latitude = latitude,
-            longitude = longitude
-        )
-        return apiService.uploadInsidens("Bearer $token", request)
+        return try {
+            val request = UploadInsidensRequest(
+                voice_detection = voiceDetection,
+                latitude = latitude,
+                longitude = longitude
+            )
+            apiService.uploadInsidens("Bearer $token", request)
+        } catch (e: Exception) {
+            throw Exception("Failed to upload scream detection: ${e.message}")
+        }
     }
 
     fun validateNewInsiden(
@@ -85,5 +122,13 @@ class CrimeAlertRepository @Inject constructor(
         incidentId: RequestBody,
     ): Call<AddNewReportResponse> {
         return apiService.validateInsiden("Bearer $token", title, description, latitude, longitude, incidentId, picture)
+    }
+
+    suspend fun updateAvatar(token: String, userId: Int, avatarRequest: UpdateAvatarRequest): Response<UpdateAvatarResponse> {
+        return try {
+            apiService.updateAvatar("Bearer $token", userId, avatarRequest)
+        } catch (e: Exception) {
+            throw Exception("Failed to update avatar: ${e.message}")
+        }
     }
 }

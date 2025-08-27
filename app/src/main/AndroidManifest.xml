@@ -55,6 +55,7 @@
         <activity
             android:name=".ui.alluserpage.crimepronearea.CrimeProneAreaActivity"
             android:exported="false"
+            android:theme="@style/Theme.Crimealertmobile_Authpage"
             android:label="@string/title_activity_crime_prone_area" />
         <activity
             android:name=".ui.alluserpage.validateinsidens.ValidateInsidensActivity"
