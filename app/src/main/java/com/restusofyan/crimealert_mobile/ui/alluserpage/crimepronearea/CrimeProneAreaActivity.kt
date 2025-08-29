@@ -133,7 +133,7 @@ class CrimeProneAreaActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun setDefaultLocation() {
-        currentLocation = LatLng(-7.7956, 110.3695) // Yogyakarta
+        currentLocation = LatLng(-7.7956, 110.3695)
         moveToCurrentLocation()
     }
 
@@ -221,7 +221,7 @@ class CrimeProneAreaActivity : AppCompatActivity(), OnMapReadyCallback {
             if (crimeReports.isNotEmpty()) {
 
                 setupCrimeMarkers()
-                setupCrimeZones() // <== tambahkan zona rawan
+                setupCrimeZones()
                 setupMarkerClickListener()
             }
         }
@@ -269,35 +269,34 @@ class CrimeProneAreaActivity : AppCompatActivity(), OnMapReadyCallback {
                             otherLoc.latitude, otherLoc.longitude,
                             results
                         )
-                        results[0] <= 500
+                        results[0] <= 150
                     } ?: false
                 }
 
                 val count = nearbyReports.size
-                if (count >= 3) { // minimal 3 untuk dianggap cluster
-                    // hitung centroid cluster
-                    val avgLat = nearbyReports.mapNotNull { it.map?.latitude }.average()
-                    val avgLng = nearbyReports.mapNotNull { it.map?.longitude }.average()
-                    val center = LatLng(avgLat, avgLng)
+                if (count >= 3) {
+                    // Pakai lokasi report pertama (bukan centroid!)
+                    val clusterCenter = LatLng(
+                        nearbyReports.first().map?.latitude ?: 0.0,
+                        nearbyReports.first().map?.longitude ?: 0.0
+                    )
 
-                    // tampilkan lingkaran zona rawan
                     googleMap?.addCircle(
                         CircleOptions()
-                            .center(center)
-                            .radius(500.0)
+                            .center(clusterCenter)
+                            .radius(150.0)
                             .strokeColor(android.graphics.Color.RED)
                             .fillColor(android.graphics.Color.argb(70, 255, 0, 0))
                             .strokeWidth(3f)
                     )
 
-                    // tambahkan titik untuk heatmap sesuai kategori
                     val weight = when {
-                        count >= 5 -> 5.0  // merah kuat
-                        count >= 3 -> 3.0  // kuning
+                        count >= 5 -> 5.0
+                        count >= 3 -> 3.0
                         else -> 0.0
                     }
                     if (weight > 0.0) {
-                        heatmapPoints.add(WeightedLatLng(center, weight))
+                        heatmapPoints.add(WeightedLatLng(clusterCenter, weight))
                     }
 
                     usedReports.addAll(nearbyReports)
@@ -316,7 +315,6 @@ class CrimeProneAreaActivity : AppCompatActivity(), OnMapReadyCallback {
             heatmapOverlay = googleMap?.addTileOverlay(TileOverlayOptions().tileProvider(provider))
         }
     }
-
 
 
     private fun moveToCurrentLocation() {
