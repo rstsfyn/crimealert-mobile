@@ -8,11 +8,13 @@ import com.restusofyan.crimealert_mobile.data.response.casesreports.UpdateStatus
 import com.restusofyan.crimealert_mobile.data.response.createreport.AddNewReportResponse
 import com.restusofyan.crimealert_mobile.data.response.insidens.UploadInsidensRequest
 import com.restusofyan.crimealert_mobile.data.response.insidens.UploadInsidensResponse
+import com.restusofyan.crimealert_mobile.data.response.login.GoogleLoginRequest
 import com.restusofyan.crimealert_mobile.data.response.login.LoginRequest
 import com.restusofyan.crimealert_mobile.data.response.login.LoginResponse
 import com.restusofyan.crimealert_mobile.data.response.profile.MyProfileResponse
 import com.restusofyan.crimealert_mobile.data.response.profile.UpdateAvatarRequest
 import com.restusofyan.crimealert_mobile.data.response.profile.UpdateAvatarResponse
+import com.restusofyan.crimealert_mobile.data.response.register.GoogleRegisterRequest
 import com.restusofyan.crimealert_mobile.data.response.register.RegisterRequest
 import com.restusofyan.crimealert_mobile.data.response.register.RegisterResponse
 import okhttp3.MultipartBody
@@ -40,6 +42,22 @@ class CrimeAlertRepository @Inject constructor(
             apiService.registerUser(registerRequest)
         } catch (e: Exception) {
             throw Exception("Registration failed: ${e.message}")
+        }
+    }
+
+    suspend fun googleLogin(googleLoginRequest: GoogleLoginRequest): Response<LoginResponse> {
+        return try {
+            apiService.googleLogin(googleLoginRequest)
+        } catch (e: Exception) {
+            throw Exception("Google login failed: ${e.message}")
+        }
+    }
+
+    suspend fun googleRegister(googleRegisterRequest: GoogleRegisterRequest): Response<RegisterResponse> {
+        return try {
+            apiService.googleRegister(googleRegisterRequest)
+        } catch (e: Exception) {
+            throw Exception("Google registration failed: ${e.message}")
         }
     }
 

@@ -8,11 +8,13 @@ import com.restusofyan.crimealert_mobile.data.response.casesreports.UpdateStatus
 import com.restusofyan.crimealert_mobile.data.response.createreport.AddNewReportResponse
 import com.restusofyan.crimealert_mobile.data.response.insidens.UploadInsidensRequest
 import com.restusofyan.crimealert_mobile.data.response.insidens.UploadInsidensResponse
+import com.restusofyan.crimealert_mobile.data.response.login.GoogleLoginRequest
 import com.restusofyan.crimealert_mobile.data.response.login.LoginRequest
 import com.restusofyan.crimealert_mobile.data.response.login.LoginResponse
 import com.restusofyan.crimealert_mobile.data.response.profile.MyProfileResponse
 import com.restusofyan.crimealert_mobile.data.response.profile.UpdateAvatarRequest
 import com.restusofyan.crimealert_mobile.data.response.profile.UpdateAvatarResponse
+import com.restusofyan.crimealert_mobile.data.response.register.GoogleRegisterRequest
 import com.restusofyan.crimealert_mobile.data.response.register.RegisterRequest
 import com.restusofyan.crimealert_mobile.data.response.register.RegisterResponse
 import okhttp3.MultipartBody
@@ -38,6 +40,16 @@ interface ApiService {
     @POST("auth/register")
     suspend fun registerUser(
         @Body registerData: RegisterRequest
+    ) : Response<RegisterResponse>
+
+    @POST("auth/google/login")
+    suspend fun googleLogin(
+        @Body googleLoginData: GoogleLoginRequest
+    ) : Response<LoginResponse>
+
+    @POST("auth/google/register")
+    suspend fun googleRegister(
+        @Body googleRegisterData: GoogleRegisterRequest
     ) : Response<RegisterResponse>
 
     @GET("users/me")
