@@ -23,7 +23,8 @@ android {
 
 //        buildConfigField ("String", "BASE_URL", "\"http://192.168.1.10:3000/api/\"")
 //        buildConfigField ("String", "BASE_URL", "\"http://10.0.2.2:3000/api/\"")
-        buildConfigField ("String", "BASE_URL", "\"http://20.11.0.124/api/\"")
+//        buildConfigField ("String", "BASE_URL", "\"http://20.11.0.124/api/\"")
+        buildConfigField ("String", "BASE_URL", "\"https://server-crimealert.codingankuu.com/api/\"")
 
         ndk {
             abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
@@ -94,6 +95,9 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.lottie)
     implementation(libs.androidx.viewpager2)
+    
+    // Conscrypt for better SSL/TLS support
+    implementation(libs.conscrypt.android)
 
     implementation(libs.dagger.hilt.android)
     kapt(libs.hilt.compiler)

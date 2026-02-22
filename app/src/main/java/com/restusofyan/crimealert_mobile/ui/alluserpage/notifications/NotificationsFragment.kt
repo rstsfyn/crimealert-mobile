@@ -124,31 +124,15 @@ class NotificationFragment : Fragment() {
 
             NotificationType.REPORT -> {
                 val userRole = getUserRole()
+                val reportId = notification.id.toIntOrNull() ?: 0
 
                 if (userRole == "polisi") {
                     Intent(requireContext(), DetailCasesPoliceActivity::class.java).apply {
-                        putExtra("report_title", notification.title)
-                        putExtra("report_description", notification.description)
-                        putExtra("report_date", notification.timestamp)
-                        putExtra("report_timestamp", notification.timestamp)
-                        putExtra("report_latitude", notification.latitude)
-                        putExtra("report_longitude", notification.longitude)
-                        putExtra("status_kasus", notification.statusKasus)
-                        putExtra("report_image_url", notification.imageUrl)
-                        putExtra("name_reporter", notification.reporterName)
-                        putExtra("avatar_reporter", notification.reporterAvatar)
+                        putExtra("report_id", reportId)
                     }
                 } else {
                     Intent(requireContext(), DetailCasesActivity::class.java).apply {
-                        putExtra("news_title", notification.title)
-                        putExtra("news_description", notification.description)
-                        putExtra("news_date", notification.timestamp)
-                        putExtra("news_timestamp", notification.timestamp)
-                        putExtra("news_latitude", notification.latitude)
-                        putExtra("news_longitude", notification.longitude)
-                        putExtra("news_image_url", notification.imageUrl)
-                        putExtra("name_reporter", notification.reporterName)
-                        putExtra("avatar_reporter", notification.reporterAvatar)
+                        putExtra("report_id", reportId)
                     }
                 }
             }

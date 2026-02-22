@@ -3,8 +3,8 @@ package com.restusofyan.crimealert_mobile.data.api
 
 import com.restusofyan.crimealert_mobile.data.response.casesreports.CasesHandledReportResponse
 import com.restusofyan.crimealert_mobile.data.response.casesreports.CasesReportResponse
+import com.restusofyan.crimealert_mobile.data.response.casesreports.ReportDetailResponse
 import com.restusofyan.crimealert_mobile.data.response.casesreports.UpdateStatusReportResponse
-import com.restusofyan.crimealert_mobile.data.response.casesreports.UpdateStatusRequest
 import com.restusofyan.crimealert_mobile.data.response.createreport.AddNewReportResponse
 import com.restusofyan.crimealert_mobile.data.response.insidens.UploadInsidensRequest
 import com.restusofyan.crimealert_mobile.data.response.insidens.UploadInsidensResponse
@@ -83,11 +83,20 @@ interface ApiService {
         @Header("Authorization") token: String,
     ) : Response<CasesHandledReportResponse>
 
+    @GET("reports/{id}")
+    suspend fun getReportDetail(
+        @Header("Authorization") token: String,
+        @Path("id") reportId: Int
+    ) : Response<ReportDetailResponse>
+
+    @Multipart
     @PUT("reports/{id}/status")
     suspend fun updateStatus(
         @Header("Authorization") token: String,
         @Path("id") reportId: Int,
-        @Body statusBody: UpdateStatusRequest
+        @Part("status_kasus") statusKasus: RequestBody,
+        @Part evidencePhoto: MultipartBody.Part?,
+        @Part("notes") notes: RequestBody?
     ): Response<UpdateStatusReportResponse>
 
     @POST("insidens/")

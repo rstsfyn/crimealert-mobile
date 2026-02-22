@@ -116,17 +116,7 @@ class HomeFragment : Fragment() {
     private fun setupRecyclerView() {
         newsAdapter = NewsAdapter(emptyList()) { selectedNews ->
             val intent = Intent(requireContext(), DetailCasesActivity::class.java).apply {
-                putExtra("news_id", selectedNews.idReport)
-                putExtra("news_title", selectedNews.title)
-                putExtra("news_description", selectedNews.description)
-                putExtra("news_image_url", selectedNews.picture)
-                putExtra("news_timestamp", selectedNews.createdAt)
-                putExtra("news_date", selectedNews.createdAt?.substringBefore("T"))
-                putExtra("news_status", selectedNews.statusKasus)
-                putExtra("news_latitude", selectedNews.map?.latitude)
-                putExtra("news_longitude", selectedNews.map?.longitude)
-                putExtra("avatar_reporter", selectedNews.user?.avatar)
-                putExtra("name_reporter", selectedNews.user?.name)
+                putExtra("report_id", selectedNews.idReport)
             }
             startActivity(intent)
         }
@@ -184,7 +174,6 @@ class HomeFragment : Fragment() {
             }
         }
 
-        // Crime Prone Area click listener
         binding.cvCrimeProneArea.setOnClickListener {
             Log.d("HomeFragment", "Crime Prone Area clicked!")
             val intent = Intent(requireContext(), CrimeProneAreaActivity::class.java)

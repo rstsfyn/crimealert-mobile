@@ -47,7 +47,8 @@ class SocketManager(private val context: Context) {
             opts.forceNew = true
             opts.reconnection = true
 
-            mSocket = IO.socket("http://20.11.0.124", opts)
+//            mSocket = IO.socket("http://20.11.0.124", opts)
+            mSocket = IO.socket("http://server-crimealert.codingankuu.com", opts)
             mSocket.connect()
 
             mSocket.on(Socket.EVENT_CONNECT) {
@@ -145,33 +146,12 @@ class SocketManager(private val context: Context) {
                 val intent = if (userRole == "polisi") {
                     Intent(context, DetailCasesPoliceActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-
-                        putExtra("report_title", jsonData.optString("title", "New Report"))
-                        putExtra("report_description", jsonData.optString("description", ""))
-                        putExtra("report_date", jsonData.optString("created_at", ""))
-                        putExtra("report_timestamp", jsonData.optString("created_at", ""))
-                        putExtra("report_latitude", jsonData.optDouble("latitude", 0.0))
-                        putExtra("report_longitude", jsonData.optDouble("longitude", 0.0))
-                        putExtra("status_kasus", jsonData.optString("status_kasus", ""))
-                        putExtra("report_image_url", jsonData.optString("picture", ""))
-                        putExtra("report_id", jsonData.optString("id", ""))
-                        putExtra("avatar_reporter", jsonData.optString("avatar", ""))
-                        putExtra("name_reporter", jsonData.optString("name", ""))
+                        putExtra("report_id", jsonData.optInt("id", 0))
                     }
                 } else {
                     Intent(context, DetailCasesActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                        putExtra("news_title", jsonData.optString("title", "Ada Laporan Kejahatan"))
-                        putExtra("news_description", jsonData.optString("description", ""))
-                        putExtra("news_date", jsonData.optString("created_at", ""))
-                        putExtra("news_timestamp", jsonData.optString("created_at", ""))
-                        putExtra("news_latitude", jsonData.optDouble("latitude", 0.0))
-                        putExtra("news_longitude", jsonData.optDouble("longitude", 0.0))
-                        putExtra("status_kasus", jsonData.optString("status_kasus", ""))
-                        putExtra("news_image", jsonData.optString("picture", ""))
-                        putExtra("report_id", jsonData.optString("id", ""))
-                        putExtra("name_reporter", jsonData.optString("name", ""))
-                        putExtra("avatar_reporter", jsonData.optString("avatar", ""))
+                        putExtra("report_id", jsonData.optInt("id", 0))
                     }
                 }
 

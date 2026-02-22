@@ -3,8 +3,8 @@ package com.restusofyan.crimealert_mobile.data.repository
 import com.restusofyan.crimealert_mobile.data.api.ApiService
 import com.restusofyan.crimealert_mobile.data.response.casesreports.CasesHandledReportResponse
 import com.restusofyan.crimealert_mobile.data.response.casesreports.CasesReportResponse
+import com.restusofyan.crimealert_mobile.data.response.casesreports.ReportDetailResponse
 import com.restusofyan.crimealert_mobile.data.response.casesreports.UpdateStatusReportResponse
-import com.restusofyan.crimealert_mobile.data.response.casesreports.UpdateStatusRequest
 import com.restusofyan.crimealert_mobile.data.response.createreport.AddNewReportResponse
 import com.restusofyan.crimealert_mobile.data.response.insidens.UploadInsidensRequest
 import com.restusofyan.crimealert_mobile.data.response.insidens.UploadInsidensResponse
@@ -17,8 +17,10 @@ import com.restusofyan.crimealert_mobile.data.response.profile.UpdateAvatarRespo
 import com.restusofyan.crimealert_mobile.data.response.register.GoogleRegisterRequest
 import com.restusofyan.crimealert_mobile.data.response.register.RegisterRequest
 import com.restusofyan.crimealert_mobile.data.response.register.RegisterResponse
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Call
 import retrofit2.Response
 import javax.inject.Inject
@@ -104,9 +106,32 @@ class CrimeAlertRepository @Inject constructor(
         }
     }
 
-    suspend fun updateReportStatus(token: String, reportId: Int, status: String): Response<UpdateStatusReportResponse> {
+    suspend fun getReportDetail(token: String, reportId: Int): Response<ReportDetailResponse> {
         return try {
-            apiService.updateStatus("Bearer $token", reportId, UpdateStatusRequest(status))
+            apiService.getReportDetail("Bearer $token", reportId)
+        } catch (e: Exception) {
+            throw Exception("Failed to fetch report detail: ${e.message}")
+        }
+    }
+
+    suspend fun updateReportStatus(
+        token: String, 
+        reportId: Int, 
+        status: String,
+        evidencePhoto: MultipartBody.Part? = null,
+        notes: String? = null
+    ): Response<UpdateStatusReportResponse> {
+        return try {
+            val statusBody = status.toRequestBody("text/plain".toMediaType())
+            val notesBody = notes?.toRequestBody("text/plain".toMediaType())
+            
+            apiService.updateStatus(
+                "Bearer $token", 
+                reportId, 
+                statusBody,
+                evidencePhoto,
+                notesBody
+            )
         } catch (e: Exception) {
             throw Exception("Failed to update status: ${e.message}")
         }

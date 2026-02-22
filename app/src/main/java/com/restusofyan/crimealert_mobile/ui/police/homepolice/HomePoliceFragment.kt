@@ -17,6 +17,7 @@ import com.restusofyan.crimealert_mobile.data.model.CasesModel
 import com.restusofyan.crimealert_mobile.databinding.FragmentHomePoliceBinding
 import com.restusofyan.crimealert_mobile.ui.adapter.CasesAdapter
 import com.restusofyan.crimealert_mobile.ui.adapter.NewsAdapter
+import com.restusofyan.crimealert_mobile.ui.alluserpage.crimepronearea.CrimeProneAreaActivity
 import com.restusofyan.crimealert_mobile.ui.police.detailcasespolice.DetailCasesPoliceActivity
 import com.restusofyan.crimealert_mobile.ui.users.detailcases.DetailCasesActivity
 import com.restusofyan.crimealert_mobile.ui.users.home.HomeViewModel
@@ -68,16 +69,6 @@ class HomePoliceFragment : Fragment() {
         casesAdapter = CasesAdapter(emptyList()) { selectedNews ->
             val intent = Intent(requireContext(), DetailCasesPoliceActivity::class.java).apply {
                 putExtra("report_id", selectedNews.idReport)
-                putExtra("report_title", selectedNews.title)
-                putExtra("report_description", selectedNews.description)
-                putExtra("report_image_url", selectedNews.picture)
-                putExtra("report_timestamp", selectedNews.createdAt)
-                putExtra("report_date", selectedNews.createdAt?.substringBefore("T"))
-                putExtra("report_status", selectedNews.statusKasus)
-                putExtra("report_latitude", selectedNews.map?.latitude)
-                putExtra("report_longitude", selectedNews.map?.longitude)
-                putExtra("avatar_reporter", selectedNews.user?.avatar)
-                putExtra("name_reporter", selectedNews.user?.name)
             }
             startActivity(intent)
         }
@@ -135,6 +126,12 @@ class HomePoliceFragment : Fragment() {
         binding.tvTrendingcasesSeeall.setOnClickListener {
             Log.d("HomeFragment", "See all clicked!")
             findNavController().navigate(R.id.navigation_caseslist_police)
+        }
+
+        binding.cvCrimeProneArea.setOnClickListener {
+            Log.d("HomeFragment", "Crime Prone Area clicked!")
+            val intent = Intent(requireContext(), CrimeProneAreaActivity::class.java)
+            startActivity(intent)
         }
     }
 

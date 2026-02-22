@@ -7,7 +7,10 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -17,16 +20,28 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.restusofyan.crimealert_mobile.R
+import com.restusofyan.crimealert_mobile.data.repository.CrimeAlertRepository
 import com.restusofyan.crimealert_mobile.databinding.ActivityDetailCasesBinding
+import com.restusofyan.crimealert_mobile.ui.adapter.StatusHistoryAdapter
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.inject.Inject
 
+
+@AndroidEntryPoint
 class DetailCasesActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<LinearLayout>
     private lateinit var binding: ActivityDetailCasesBinding
     private var googleMap: GoogleMap? = null
     private var caseLocation: LatLng? = null
+    private var reportId: Int = 0
+
+    @Inject
+    lateinit var repository: CrimeAlertRepository
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -113,58 +128,125 @@ class DetailCasesActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun setupDetailCasesData() {
-        binding.tvTitle.text = intent.getStringExtra("news_title")
-        binding.tvDescription.text = intent.getStringExtra("news_description")
-        val rawTimestamp = intent.getStringExtra("news_timestamp")
-        binding.tvNewsTimestamp.text = formatTimestampToGMT7(rawTimestamp)
-        val rawDate = intent.getStringExtra("news_date")
-        binding.tvDate.text = formatDateToGMT7(rawDate)
-
-        var imageUrl = intent.getStringExtra("news_image_url")
-        if (!imageUrl.isNullOrEmpty()) {
-            Glide.with(this)
-                .load(imageUrl)
-                .placeholder(R.drawable.bg_photoreport)
-                .error(R.drawable.bg_photoreport)
-                .into(binding.ivCaseImage)
-        } else {
-            binding.ivCaseImage.setImageResource(R.drawable.bg_photoreport)
+        reportId = intent.getIntExtra("report_id", 0)
+        
+        if (reportId == 0) {
+            Toast.makeText(this, "Invalid report ID", Toast.LENGTH_SHORT).show()
+            finish()
+            return
         }
 
-        var avatarReporter = intent.getStringExtra("avatar_reporter")
-        if (!avatarReporter.isNullOrEmpty()) {
-            Glide.with(this)
-                .load(avatarReporter)
-                .placeholder(R.drawable.bg_photoreport)
-                .error(R.drawable.bg_photoreport)
-                .into(binding.ivReporterAvatar)
-        } else {
-            binding.ivReporterAvatar.setImageResource(R.drawable.bg_photoreport)
-        }
+        fetchReportDetail()
+    }
 
-        binding.tvReporterName.text = intent.getStringExtra("name_reporter")
+    private fun fetchReportDetail() {
+        lifecycleScope.launch {
+            try {
+                val token = getSharedPreferences("user_session", MODE_PRIVATE)
+                    .getString("token", "") ?: ""
+
+                if (token.isEmpty()) {
+                    Toast.makeText(this@DetailCasesActivity, 
+                        "Token tidak ditemukan", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+
+                val response = repository.getReportDetail(token, reportId)
+
+                if (response.isSuccessful && response.body()?.error == false) {
+                    val reportData = response.body()?.data
+                    reportData?.let { data ->
+                        // Set basic info
+                        binding.tvTitle.text = data.title ?: "No Title"
+                        binding.tvDescription.text = data.description ?: "No Description"
+                        binding.tvNewsTimestamp.text = formatTimestampToGMT7(data.createdAt)
+                        binding.tvDate.text = formatDateToGMT7(data.createdAt)
+
+                        // Set reporter info
+                        binding.tvReporterName.text = data.user?.name ?: "Unknown"
+                        
+                        // Load reporter avatar
+                        if (!data.user?.avatar.isNullOrEmpty()) {
+                            Glide.with(this@DetailCasesActivity)
+                                .load(data.user?.avatar)
+                                .placeholder(R.drawable.bg_photoreport)
+                                .error(R.drawable.bg_photoreport)
+                                .into(binding.ivReporterAvatar)
+                        } else {
+                            binding.ivReporterAvatar.setImageResource(R.drawable.bg_photoreport)
+                        }
+
+                        // Load case image
+                        if (!data.picture.isNullOrEmpty()) {
+                            Glide.with(this@DetailCasesActivity)
+                                .load(data.picture)
+                                .placeholder(R.drawable.bg_photoreport)
+                                .error(R.drawable.bg_photoreport)
+                                .into(binding.ivCaseImage)
+                        } else {
+                            binding.ivCaseImage.setImageResource(R.drawable.bg_photoreport)
+                        }
+
+                        // Update map location
+                        data.map?.let { mapData ->
+                            caseLocation = LatLng(
+                                mapData.latitude ?: 0.0,
+                                mapData.longitude ?: 0.0
+                            )
+                            updateMapLocation()
+                        }
+
+                        // Setup status history
+                        setupStatusHistory(data.statusHistory ?: emptyList())
+                    }
+                } else {
+                    Toast.makeText(this@DetailCasesActivity,
+                        "Gagal memuat detail laporan: ${response.body()?.message}",
+                        Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@DetailCasesActivity,
+                    "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.e("DetailCasesActivity", "Error fetching report detail", e)
+            }
+        }
+    }
+
+    private fun setupStatusHistory(statusHistory: List<com.restusofyan.crimealert_mobile.data.response.casesreports.StatusHistoryItem>) {
+        if (statusHistory.isEmpty()) {
+            binding.tvStatusHistoryTitle.visibility = View.VISIBLE
+            binding.tvEmptyStatusHistory.visibility = View.VISIBLE
+            binding.rvStatusHistory.visibility = View.GONE
+        } else {
+            binding.tvStatusHistoryTitle.visibility = View.VISIBLE
+            binding.tvEmptyStatusHistory.visibility = View.GONE
+            binding.rvStatusHistory.visibility = View.VISIBLE
+            
+            val adapter = StatusHistoryAdapter(statusHistory)
+            binding.rvStatusHistory.layoutManager = LinearLayoutManager(this)
+            binding.rvStatusHistory.adapter = adapter
+        }
+    }
+
+    private fun updateMapLocation() {
+        caseLocation?.let { location ->
+            googleMap?.apply {
+                clear()
+                addMarker(
+                    MarkerOptions()
+                        .position(location)
+                        .title("Lokasi Kasus")
+                )
+                moveCamera(CameraUpdateFactory.newLatLngZoom(location, 14f))
+            }
+        }
     }
 
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
-        updateCaseLocation()
+        updateMapLocation()
         setupMarkerClickListener()
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-    }
-
-    private fun updateCaseLocation() {
-        val latitude = intent.getDoubleExtra("news_latitude", 0.0)
-        val longitude = intent.getDoubleExtra("news_longitude", 0.0)
-        caseLocation = LatLng(latitude, longitude)
-
-        googleMap?.apply {
-            addMarker(
-                MarkerOptions()
-                    .position(caseLocation!!)
-                    .title("Lokasi Kasus")
-            )
-            moveCamera(CameraUpdateFactory.newLatLngZoom(caseLocation!!, 14f))
-        }
     }
 
     private fun setupMarkerClickListener() {
